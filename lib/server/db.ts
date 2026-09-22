@@ -16,7 +16,17 @@ export function database(): Promise<Client> {
   return clientPromise;
 }
 async function initialize() {
-  const url = process.env.TURSO_DATABASE_URL || "file:data/worshiply.db";
+  const configuredUrl = process.env.TURSO_DATABASE_URL?.trim();
+  if (
+    process.env.VERCEL === "1" &&
+    (!configuredUrl || !/^(libsql|https):\/\//i.test(configuredUrl))
+  ) {
+    throw new ApiError(
+      503,
+      "Persistent song storage is not configured. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel, then redeploy.",
+    );
+  }
+  const url = configuredUrl || "file:data/worshiply.db";
   if (url === "file:data/worshiply.db")
     await mkdir("data", { recursive: true });
   const client = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN });

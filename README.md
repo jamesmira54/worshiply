@@ -36,6 +36,20 @@ All saved songs in this MVP are publicly readable by people who can reach the se
 
 For access beyond this computer, deploy the Next.js Node server to a host with persistent storage or configure Turso. `localhost` links are for local preview only. Set `APP_ORIGIN` to the deployed HTTPS origin. Do not deploy a local SQLite database to an ephemeral serverless filesystem. No cloud services, production database, or deployment are provisioned by this repository.
 
+## Vercel database setup
+
+Vercel does not provide persistent local SQLite storage. The app refuses to use a local database on Vercel so songs cannot be saved into disposable storage.
+
+1. Create a Turso database and obtain its database URL and authentication token.
+2. In Vercel project settings, add `TURSO_DATABASE_URL` (the `libsql://...` URL) and `TURSO_AUTH_TOKEN` to the **Production** environment. Keep the token private.
+3. Set `APP_ORIGIN` to `https://worshiply.azelandjames.com`.
+4. Redeploy. The app creates its tables automatically in the remote database. Keep using the same database URL for subsequent deployments.
+5. Save a song, redeploy again, and verify that the song and its URL still work.
+
+Use a separate database for Preview deployments if you enable saving there. Existing local songs are not automatically copied into Turso; preserve any available `data/worshiply.db` backup before migrating. Connecting a new database does not recover records from a discarded filesystem.
+
+Changing domains also changes access to the ownership cookie: songs can remain present while editing access is lost. That is separate from database persistence.
+
 ## Music and documents
 
 - Place chords immediately before lyric anchors: `[C]One line [G/B]with chords`.
