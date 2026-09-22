@@ -2,6 +2,7 @@ import "server-only";
 import { createClient, type Client } from "@libsql/client";
 import { mkdir } from "node:fs/promises";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { DEFAULT_CATEGORY } from "@/types/song";
 import type { Song, SongInput } from "@/types/song";
 import { ApiError } from "./validation";
 
@@ -34,7 +35,7 @@ export const ownerHash = (token: string) =>
 export const newOwnerToken = () => randomBytes(32).toString("hex");
 
 export async function listSongs(
-  options: { search: string; key: string; sort: string; page: number },
+  options: { search: string; key: string; category: string; sort: string; page: number },
   token?: string,
 ) {
   const db = await database();
@@ -48,6 +49,10 @@ export async function listSongs(
   if (options.key) {
     conditions.push("json_extract(data, '$.defaultKey') = ?");
     args.push(options.key);
+  }
+  if (options.category) {
+    conditions.push("COALESCE(json_extract(data, '$.category'), ?) = ?");
+    args.push(DEFAULT_CATEGORY, options.category);
   }
   const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
   const order =
@@ -68,7 +73,7 @@ export async function listSongs(
   const hash = token ? ownerHash(token) : null;
   return {
     songs: rows.rows.map((row) => ({
-      ...(JSON.parse(String(row.data)) as Song),
+      ...{ category: DEFAULT_CATEGORY, ...JSON.parse(String(row.data)) } as Song,
       canEdit: row.owner_hash === hash,
     })),
     total: Number(count.rows[0].total),
@@ -86,7 +91,7 @@ export async function findSong(slug: string, token?: string) {
   const row = result.rows[0];
   if (!row) throw new ApiError(404, "This song could not be found.");
   return {
-    song: JSON.parse(String(row.data)) as Song,
+    song: { category: DEFAULT_CATEGORY, ...JSON.parse(String(row.data)) } as Song,
     canEdit: !!token && row.owner_hash === ownerHash(token),
   };
 }

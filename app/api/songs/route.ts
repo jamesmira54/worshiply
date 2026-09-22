@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       {
         search: (params.get("search") || "").slice(0, 160),
         key: (params.get("key") || "").slice(0, 4),
+        category: (params.get("category") || "").slice(0, 40),
         sort: params.get("sort") || "updated",
         page,
       },

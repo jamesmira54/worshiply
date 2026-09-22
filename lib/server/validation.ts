@@ -1,3 +1,4 @@
+import { SONG_CATEGORIES, DEFAULT_CATEGORY } from "@/types/song";
 import type { SongInput } from "@/types/song";
 
 export class ApiError extends Error {
@@ -59,6 +60,9 @@ export function validateSong(value: unknown): SongInput {
       );
     return result;
   }
+  const category = input.category === undefined ? DEFAULT_CATEGORY : input.category;
+  if (!SONG_CATEGORIES.includes(category as SongInput["category"]))
+    throw new ApiError(400, "Choose a valid song category.");
   const title = string("title", 160).trim();
   if (!title) throw new ApiError(400, "Give your song a title.");
   const originalKey = string("originalKey", 4, "C");
@@ -95,6 +99,7 @@ export function validateSong(value: unknown): SongInput {
   if (typeof showChords !== "boolean")
     throw new ApiError(400, "Show chords must be true or false.");
   return {
+    category: category as SongInput["category"],
     title,
     artist: string("artist", 160).trim(),
     lyrics: string("lyrics", 60000),

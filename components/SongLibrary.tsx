@@ -15,6 +15,8 @@ import {
   Library,
   X,
 } from "lucide-react";
+import { SONG_CATEGORIES } from "@/types/song";
+import { DismissibleDetails } from "./DismissibleDetails";
 import type { Song } from "@/types/song";
 import { api } from "@/lib/api";
 import { KEY_OPTIONS } from "@/components/editor/EditorToolbar";
@@ -38,6 +40,7 @@ export function SongLibrary() {
     pageSize: 12,
   });
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
   const [key, setKey] = useState("");
   const [sort, setSort] = useState("updated");
   const [page, setPage] = useState(1);
@@ -52,7 +55,7 @@ export function SongLibrary() {
     setError("");
     const timer = setTimeout(() => {
       api<Result>(
-        `/api/songs?${new URLSearchParams({ search, key, sort, page: String(page) })}`,
+        `/api/songs?${new URLSearchParams({ search, key, category, sort, page: String(page) })}`,
         { signal: controller.signal },
       )
         .then(setData)
@@ -67,7 +70,7 @@ export function SongLibrary() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [search, key, sort, page, revision]);
+  }, [search, key, category, sort, page, revision]);
   async function duplicate(song: Song) {
     setBusy(song.id);
     setError("");
@@ -184,6 +187,13 @@ export function SongLibrary() {
           </select>
         </label>
         <label className="filter-select">
+          <span>Category</span>
+          <select aria-label="Filter by category" value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">All categories</option>
+            {SONG_CATEGORIES.map((item) => <option key={item}>{item}</option>)}
+          </select>
+        </label>
+        <label className="filter-select">
           <span>Sort</span>
           <select
             aria-label="Sort songs"
@@ -232,6 +242,7 @@ export function SongLibrary() {
                 <p className="song-artist">
                   {song.artist || "Your arrangement"}
                 </p>
+                <p className="song-category">{song.category}</p>
                 <div className="song-card-details">
                   <span>{song.bpm ? `${song.bpm} BPM` : "Free tempo"}</span>
                   <span>·</span>
@@ -249,7 +260,7 @@ export function SongLibrary() {
                   <Link className="button quiet" href={`/songs/${song.slug}`}>
                     Open song <ArrowUpRight size={15} />
                   </Link>
-                  <details className="card-menu">
+                  <DismissibleDetails className="card-menu">
                     <summary
                       className="icon-button"
                       aria-label={`Actions for ${song.title}`}
@@ -279,7 +290,7 @@ export function SongLibrary() {
                         </button>
                       )}
                     </div>
-                  </details>
+                  </DismissibleDetails>
                 </div>
               </article>
             ))}
@@ -313,21 +324,23 @@ export function SongLibrary() {
             <Music2 size={32} strokeWidth={1.4} />
           </span>
           <h2>
-            {search || key
+            {search || key || category
               ? "No songs match just yet."
               : "Your next gathering starts with a song."}
           </h2>
           <p>
-            {search || key
-              ? "Try a different title, artist, or key."
+            {search || key || category
+              ? "Try a different title, artist, key, or category."
               : "Create your first chord sheet and build a songbook your team can share."}
           </p>
-          {search || key ? (
+          {search || key || category ? (
             <button
               className="button"
               onClick={() => {
                 setSearch("");
                 setKey("");
+                setCategory("");
+                setPage(1);
               }}
             >
               Clear filters

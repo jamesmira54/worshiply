@@ -1,6 +1,7 @@
 import type { SongInput } from "@/types/song";
 
 export const blankSong: SongInput = {
+  category: "Praise & Worship",
   title: "",
   artist: "",
   lyrics: "",

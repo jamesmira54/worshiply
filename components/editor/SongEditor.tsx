@@ -52,7 +52,7 @@ export function SongEditor({ slug }: { slug?: string }) {
         .finally(() => setLoading(false));
     try {
       const saved = localStorage.getItem(`worshiply-draft:${slug || "new"}`);
-      if (saved) setDraft(JSON.parse(saved));
+      if (saved) setDraft({ ...blankSong, ...JSON.parse(saved) });
     } catch {
       /* Storage may be disabled. Saving to the server still works. */
     }

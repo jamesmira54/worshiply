@@ -1,5 +1,7 @@
 "use client";
 import { SlidersHorizontal } from "lucide-react";
+import { SONG_CATEGORIES, DEFAULT_CATEGORY } from "@/types/song";
+import { DismissibleDetails } from "../DismissibleDetails";
 import type { SongInput } from "@/types/song";
 import { EditorToolbar, KEY_OPTIONS } from "./EditorToolbar";
 export function SongMetadata({
@@ -47,7 +49,7 @@ export function SongMetadata({
             ))}
           </select>
         </label>
-        <details className="more-details">
+        <DismissibleDetails className="more-details">
           <summary className="button quiet">
             <SlidersHorizontal size={16} /> Song details
           </summary>
@@ -81,6 +83,12 @@ export function SongMetadata({
                 maxLength={2}
               />
             </label>
+            <label className="category-field">
+              Category
+              <select value={song.category ?? DEFAULT_CATEGORY} onChange={(e) => change({ category: e.target.value as SongInput["category"] })}>
+                {SONG_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
+              </select>
+            </label>
             <label className="notes-field">
               Notes
               <textarea
@@ -92,7 +100,7 @@ export function SongMetadata({
               />
             </label>
           </div>
-        </details>
+        </DismissibleDetails>
       </div>
       <EditorToolbar song={song} onChange={change} />
     </section>

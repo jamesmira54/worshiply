@@ -36,6 +36,7 @@ try {
   let data = await response.json();
   created.push(data.song.slug);
   assert.equal(data.canEdit, true);
+  assert.equal(data.song.category, "Praise & Worship");
   assert.match(data.song.slug, /^worshiply-api-check-\d+$/);
   response = await send("/api/songs", "POST", input, true);
   assert.equal(response.status, 201);
@@ -64,7 +65,7 @@ try {
   response = await send(
     `/api/songs/${data.song.slug}`,
     "PATCH",
-    { ...input, title: title + " updated", defaultKey: "Eb" },
+    { ...input, title: title + " updated", defaultKey: "Eb", category: "Hymnal" },
     true,
   );
   assert.equal(response.status, 200);
@@ -74,6 +75,12 @@ try {
   let results = await response.json();
   assert.equal(results.total, 1);
   assert.equal(results.songs[0].defaultKey, "Eb");
+  response = await send(`/api/songs?search=${encodeURIComponent(title)}&category=Hymnal`);
+  results = await response.json();
+  assert.equal(results.total, 1);
+  assert.equal(results.songs[0].category, "Hymnal");
+  response = await send(`/api/songs?search=${encodeURIComponent(title)}&category=Singspiration`);
+  assert.equal((await response.json()).total, 0);
   response = await send("/api/songs", "POST", { ...input, title: "" }, true);
   assert.equal(response.status, 400);
   response = await send(`/api/songs/${data.song.slug}`, "GET", undefined, true);

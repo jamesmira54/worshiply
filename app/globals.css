@@ -529,7 +529,7 @@ code {
   padding: 9px 0;
 }
 .song-card-actions > .button {
-  padding-left: 0;
+  padding: 9px 12px;
   font-size: 12px;
   color: var(--navy);
 }
@@ -537,8 +537,12 @@ code {
   position: relative;
 }
 .card-menu > .menu-popover {
-  top: 100%;
-  right: 0;
+  position: fixed;
+  right: auto;
+  min-width: 0;
+  width: 205px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .card-menu .action-menu {
   width: 100%;
@@ -552,9 +556,17 @@ code {
   padding: 8px 10px;
 }
 .card-menu .action-menu .menu-popover {
-  right: 0;
-  top: 100%;
-  z-index: 30;
+  position: static;
+  min-width: 0;
+  margin: 2px 0 5px;
+  box-shadow: none;
+  background: var(--surface);
+}
+.card-menu .action-feedback {
+  position: static;
+  display: block;
+  white-space: normal;
+  padding: 5px 10px;
 }
 .pagination {
   display: flex;
@@ -743,7 +755,7 @@ code {
   width: 88px;
 }
 .more-details {
-  position: static;
+  position: relative;
 }
 .more-details summary {
   color: #6d8289;
@@ -752,8 +764,8 @@ code {
 }
 .metadata-extra {
   position: absolute;
-  right: 18px;
-  top: 92px;
+  right: 0;
+  top: calc(100% + 8px);
   z-index: 30;
   width: 460px;
   max-width: calc(100vw - 40px);
@@ -763,9 +775,24 @@ code {
   border: 1px solid var(--border);
   border-radius: 10px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 15px;
 }
+.metadata-extra label {
+  min-width: 0;
+}
+.metadata-extra input,
+.metadata-extra select,
+.metadata-extra textarea {
+  width: 100%;
+  min-width: 0;
+}
+.song-category {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.metadata-extra .category-field,
 .metadata-extra .notes-field {
   grid-column: 1/-1;
 }
@@ -1567,9 +1594,7 @@ code {
   .more-details {
     margin-left: auto;
   }
-  .metadata-extra {
-    top: 150px;
-  }
+
   .editor-workspace {
     display: block;
   }
@@ -1775,11 +1800,9 @@ code {
   .artist-field {
     flex-basis: 100%;
   }
+
   .metadata-extra {
-    top: 224px;
-  }
-  .metadata-extra {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .editor-toolbar {
     padding: 12px;

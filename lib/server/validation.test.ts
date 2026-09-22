@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ApiError, validateSong } from "./validation";
+import { SONG_CATEGORIES } from "../../types/song";
+
+test("categories are fixed and older songs receive a default", () => {
+  assert.equal(validateSong({ title: "Legacy" }).category, "Praise & Worship");
+  for (const category of SONG_CATEGORIES)
+    assert.equal(validateSong({ title: "Song", category }).category, category);
+  for (const category of ["Other", "", null, 42])
+    assert.throws(() => validateSong({ title: "Song", category }), ApiError);
+});
 
 test("song validation returns an explicit, bounded data model", () => {
   const song = validateSong({
