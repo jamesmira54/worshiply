@@ -18,6 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        {process.env.NODE_ENV === "development" && (
+          <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
+        )}
         <AppHeader />
         {children}
       </body>

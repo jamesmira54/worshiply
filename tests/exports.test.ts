@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { unzipSync, strFromU8 } from "fflate";
 import { wrapSegments, filename } from "../lib/export/layout";
 import { buildDocx } from "../lib/export/docx";
-import { buildPdf } from "../lib/export/pdf";
+import { buildPdf, MAX_PDF_PAGES } from "../lib/export/pdf";
 import { exportModel } from "../lib/export/model";
 import { exampleSong } from "../lib/song-defaults";
 
@@ -83,6 +83,29 @@ test("exports preserve editable text, metadata, chord cells, and landscape page 
       pdf.internal.pageSize.getWidth() > pdf.internal.pageSize.getHeight(),
     );
     assert.ok(pdf.output("arraybuffer").byteLength > 10000);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("PDF export compacts long songs to the page limit and keeps short songs on one page", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const name = String(input).split("/").pop()!;
+    return new Response(await readFile(`public/fonts/${name}`));
+  };
+  try {
+    const song = { ...exampleSong, chordDiagramType: "none" as const };
+    assert.equal((await buildPdf(song)).getNumberOfPages(), 1);
+    for (const orientation of ["portrait", "landscape"] as const) {
+      const pdf = await buildPdf({
+        ...song,
+        orientation,
+        fontSize: 18,
+        lyrics: Array(6).fill(song.lyrics).join("\n\n"),
+      });
+      assert.ok(pdf.getNumberOfPages() <= MAX_PDF_PAGES);
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }
