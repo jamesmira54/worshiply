@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/chords.test.ts tests/exports.test.ts lib/server/validation.test.ts",
+    "test": "tsx --test tests/chords.test.ts tests/exports.test.ts tests/lineups.test.ts lib/server/validation.test.ts",
     "test:api": "node tests/api.integration.mjs"
   },
   "dependencies": {

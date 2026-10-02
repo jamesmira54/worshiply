@@ -10,7 +10,13 @@ import { EditorToolbar } from "./editor/EditorToolbar";
 import { ExportMenu } from "./export/ExportMenu";
 import { ShareMenu } from "./ShareMenu";
 
-export function SongPage({ slug }: { slug: string }) {
+export function SongPage({
+  slug,
+  lineupId,
+}: {
+  slug: string;
+  lineupId?: string;
+}) {
   const router = useRouter();
   const [song, setSong] = useState<Song | null>(null);
   const [canonical, setCanonical] = useState<Song | null>(null);
@@ -70,8 +76,8 @@ export function SongPage({ slug }: { slug: string }) {
     <main className="song-view-page">
       <div className="page-heading no-print">
         <div>
-          <Link href="/songs" className="back-link">
-            <ArrowLeft size={14} /> Song library
+          <Link href={lineupId ? `/lineups/${lineupId}` : "/songs"} className="back-link">
+            <ArrowLeft size={14} /> {lineupId ? "Monthly lineup" : "Song library"}
           </Link>
           <h1>{song.title}</h1>
           <p>Ready for rehearsal. Ready to share.</p>

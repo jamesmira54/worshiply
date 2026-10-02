@@ -17,13 +17,14 @@ const input = {
   orientation: "portrait",
 };
 const created = [];
+const lineups = [];
 let cookie = "";
 async function send(path, method = "GET", body, owner = false, origin = base) {
   return fetch(base + path, {
     method,
     headers: {
       ...(body ? { "content-type": "application/json" } : {}),
-      ...(owner ? { cookie } : {}),
+      ...(owner ? { cookie: owner === true ? cookie : owner } : {}),
       ...(method !== "GET" ? { origin } : {}),
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
@@ -96,7 +97,76 @@ try {
   console.log(
     "PASS: create, readable unique slugs, reserved routes, public read, owner update, unauthorized update/delete, cross-origin rejection, saved-key search, validation.",
   );
+
+  const month = "2099-02";
+  response = await send("/api/lineups", "POST", { month }, true);
+  assert.equal(response.status, 201);
+  const lineup = (await response.json()).lineup;
+  lineups.push({ id: lineup.id, owner: true });
+  response = await send("/api/lineups", "POST", { month }, true);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).lineup.id, lineup.id);
+  response = await send("/api/lineups", "POST", { month: "2099-13" }, true);
+  assert.equal(response.status, 400);
+  response = await send("/api/lineups", "GET", undefined, true);
+  assert.ok((await response.json()).lineups.some((item) => item.id === lineup.id));
+  response = await send("/api/lineups");
+  assert.deepEqual((await response.json()).lineups, []);
+  response = await send(`/api/lineups/${lineup.id}`);
+  view = await response.json();
+  assert.equal(view.canEdit, false);
+  assert.ok(view.lineup.sundays.length >= 4);
+  assert.ok(view.lineup.sundays.every((sunday) => sunday.date.startsWith(month)));
+  const sunday = view.lineup.sundays[0].date;
+  const path = `/api/lineups/${lineup.id}`;
+  response = await send(path, "PATCH", { sunday, slot: "worship1", songId: duplicate.song.id }, true);
+  assert.equal(response.status, 200);
+  view = await response.json();
+  assert.equal(view.lineup.sundays[0].slots.worship1.id, duplicate.song.id);
+  assert.equal("owner_hash" in view.lineup, false);
+  response = await send(path, "PATCH", { sunday, slot: "singspiration", songId: duplicate.song.id }, true);
+  assert.equal(response.status, 400);
+  response = await send(path, "PATCH", { sunday, slot: "closing", songId: data.song.id }, true);
+  assert.equal(response.status, 200);
+  response = await send(path, "PATCH", { sunday, slot: "closing", songId: null });
+  assert.equal(response.status, 403);
+  response = await send(path, "PATCH", { sunday: "2099-03-01", slot: "closing", songId: null }, true);
+  assert.equal(response.status, 400);
+  response = await send(path, "PATCH", { sunday, slot: "closing", songId: crypto.randomUUID() }, true);
+  assert.equal(response.status, 404);
+  response = await send(`/api/songs/${duplicate.song.slug}`, "DELETE", undefined, true);
+  assert.equal(response.status, 409);
+  response = await send(path, "PATCH", { sunday, slot: "worship1", songId: null }, true);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).lineup.sundays[0].slots.worship1, null);
+
+  response = await send("/api/lineups", "POST", { month });
+  assert.equal(response.status, 201);
+  const otherCookie = response.headers.get("set-cookie").split(";")[0];
+  const other = (await response.json()).lineup;
+  lineups.push({ id: other.id, owner: otherCookie });
+  assert.notEqual(other.id, lineup.id);
+  response = await send(`/api/lineups/${other.id}`, "PATCH", { sunday, slot: "worship2", songId: reserved.song.id }, otherCookie);
+  assert.equal(response.status, 200);
+  response = await send(`/api/songs/${reserved.song.slug}`, "DELETE", undefined, true);
+  assert.equal(response.status, 200);
+  created.splice(created.indexOf(reserved.song.slug), 1);
+  response = await send(`/api/lineups/${other.id}`);
+  assert.deepEqual((await response.json()).lineup.sundays[0].slots.worship2, { removed: true });
+
+  response = await send(path, "DELETE");
+  assert.equal(response.status, 403);
+  response = await send("/api/lineups/not-a-lineup");
+  assert.equal(response.status, 404);
+  console.log(
+    "PASS: lineup create/reuse, owner-only changes, category and month validation, song delete guard, removed songs.",
+  );
 } finally {
+  for (const { id, owner } of lineups) {
+    const r = await send(`/api/lineups/${id}`, "DELETE", undefined, owner);
+    assert.equal(r.status, 200);
+    assert.equal((await send(`/api/lineups/${id}`)).status, 404);
+  }
   for (const slug of created) {
     const r = await send(`/api/songs/${slug}`, "DELETE", undefined, true);
     assert.equal(r.status, 200);

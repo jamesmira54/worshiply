@@ -7,6 +7,20 @@ export function ownerToken(request: NextRequest) {
   const token = request.cookies.get(OWNER_COOKIE)?.value;
   return token && /^[a-f0-9]{64}$/.test(token) ? token : undefined;
 }
+export function setOwnerCookie(
+  response: NextResponse,
+  request: NextRequest,
+  token: string,
+) {
+  response.cookies.set(OWNER_COOKIE, token, {
+    httpOnly: true,
+    secure: request.nextUrl.protocol === "https:",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365 * 5,
+  });
+  return response;
+}
 export function checkOrigin(request: NextRequest) {
   const origin = request.headers.get("origin");
   // Next's internal URL can use its bind address (0.0.0.0) rather than the

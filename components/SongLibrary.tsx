@@ -98,6 +98,7 @@ export function SongLibrary() {
       if (data.songs.length === 1 && page > 1) setPage(page - 1);
       else setRevision((n) => n + 1);
     } catch (e) {
+      setDeleting(null);
       setError(e instanceof Error ? e.message : "Could not delete song.");
     } finally {
       setBusy("");

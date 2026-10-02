@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSong, listSongs, newOwnerToken } from "@/lib/server/db";
 import {
   apiError,
-  OWNER_COOKIE,
   ownerToken,
   readBody,
+  setOwnerCookie,
 } from "@/lib/server/http";
 import { ApiError, validateSong } from "@/lib/server/validation";
 
@@ -40,18 +40,11 @@ export async function POST(request: NextRequest) {
     const input = validateSong(await readBody(request));
     const token = ownerToken(request) || newOwnerToken();
     const song = await createSong(input, token);
-    const response = NextResponse.json(
-      { song, canEdit: true },
-      { status: 201 },
+    return setOwnerCookie(
+      NextResponse.json({ song, canEdit: true }, { status: 201 }),
+      request,
+      token,
     );
-    response.cookies.set(OWNER_COOKIE, token, {
-      httpOnly: true,
-      secure: request.nextUrl.protocol === "https:",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365 * 5,
-    });
-    return response;
   } catch (error) {
     return apiError(error);
   }

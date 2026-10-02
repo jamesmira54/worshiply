@@ -1,5 +1,8 @@
 import { SONG_CATEGORIES, DEFAULT_CATEGORY } from "@/types/song";
 import type { SongInput } from "@/types/song";
+import { SLOT_KEYS } from "@/types/lineup";
+import type { SlotAssignment, SlotKey } from "@/types/lineup";
+import { MONTH_PATTERN, sundaysInMonth } from "@/lib/lineups";
 
 export class ApiError extends Error {
   constructor(
@@ -114,4 +117,31 @@ export function validateSong(value: unknown): SongInput {
     showChords,
     orientation,
   };
+}
+
+export const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function validateMonth(value: unknown): string {
+  const match = typeof value === "string" ? MONTH_PATTERN.exec(value) : null;
+  if (!match || Number(match[1]) < 2000 || Number(match[1]) > 2100)
+    throw new ApiError(400, "Choose a valid month.");
+  return value as string;
+}
+
+export function validateSlotAssignment(
+  value: unknown,
+  month: string,
+): SlotAssignment {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new ApiError(400, "Please provide a slot assignment.");
+  const input = value as Record<string, unknown>;
+  if (typeof input.sunday !== "string" || !sundaysInMonth(month).includes(input.sunday))
+    throw new ApiError(400, "Choose a Sunday in this month.");
+  if (!SLOT_KEYS.includes(input.slot as SlotKey))
+    throw new ApiError(400, "Choose a valid song slot.");
+  const songId = input.songId;
+  if (songId !== null && (typeof songId !== "string" || !UUID_PATTERN.test(songId)))
+    throw new ApiError(400, "Choose a valid song.");
+  return { sunday: input.sunday, slot: input.slot as SlotKey, songId };
 }
