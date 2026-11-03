@@ -31,7 +31,7 @@ type Result = {
   page: number;
   pageSize: number;
 };
-export function SongLibrary() {
+export function SongLibrary({ canEdit }: { canEdit: boolean }) {
   const router = useRouter();
   const [data, setData] = useState<Result>({
     songs: [],
@@ -116,9 +116,11 @@ export function SongLibrary() {
           </h1>
           <p>Your chords, your arrangements, ready for the next gathering.</p>
         </div>
-        <Link href="/songs/new" className="button primary">
-          <Plus size={19} /> New song
-        </Link>
+        {canEdit && (
+          <Link href="/songs/new" className="button primary">
+            <Plus size={19} /> New song
+          </Link>
+        )}
       </div>
       <div className="library-banner">
         <div className="banner-icon">
@@ -128,9 +130,11 @@ export function SongLibrary() {
           <h2>From the first chord to the final amen.</h2>
           <p>Write it. Make it yours. Share it with your team.</p>
         </div>
-        <Link href="/songs/new">
-          Create a chord sheet <ArrowUpRight size={18} />
-        </Link>
+        {canEdit && (
+          <Link href="/songs/new">
+            Create a chord sheet <ArrowUpRight size={18} />
+          </Link>
+        )}
         <div className="staff-lines" aria-hidden="true">
           <i />
           <i />
@@ -274,12 +278,14 @@ export function SongLibrary() {
                           <PenLine size={15} /> Edit song
                         </Link>
                       )}
-                      <button
-                        disabled={busy === song.id}
-                        onClick={() => void duplicate(song)}
-                      >
-                        <Copy size={15} /> Duplicate
-                      </button>
+                      {song.canEdit && (
+                        <button
+                          disabled={busy === song.id}
+                          onClick={() => void duplicate(song)}
+                        >
+                          <Copy size={15} /> Duplicate
+                        </button>
+                      )}
                       <ShareMenu slug={song.slug} title={song.title} />
                       <ExportMenu song={song} allowPrint={false} />
                       {song.canEdit && (
@@ -332,7 +338,9 @@ export function SongLibrary() {
           <p>
             {search || key || category
               ? "Try a different title, artist, key, or category."
-              : "Create your first chord sheet and build a songbook your team can share."}
+              : canEdit
+                ? "Create your first chord sheet and build a songbook your team can share."
+                : "Your admin hasn't added any songs yet."}
           </p>
           {search || key || category ? (
             <button
@@ -346,11 +354,11 @@ export function SongLibrary() {
             >
               Clear filters
             </button>
-          ) : (
+          ) : canEdit ? (
             <Link className="button primary" href="/songs/new">
               <Plus size={17} /> Create your first song
             </Link>
-          )}
+          ) : null}
           <div className="empty-footnote">
             Live chord preview <span>·</span> Easy transposition <span>·</span>{" "}
             PDF & Word exports

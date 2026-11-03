@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLineup, listLineups, newOwnerToken } from "@/lib/server/db";
-import { apiError, ownerToken, readBody, setOwnerCookie } from "@/lib/server/http";
+import { createLineup, listLineups } from "@/lib/server/db";
+import { currentUser, requireAccount, requireAdmin } from "@/lib/server/auth";
+import { apiError, readBody } from "@/lib/server/http";
 import { ApiError, validateMonth } from "@/lib/server/validation";
 
 export const runtime = "nodejs";
@@ -8,8 +9,9 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
+    requireAccount(await currentUser(request));
     return NextResponse.json(
-      { lineups: await listLineups(ownerToken(request)) },
+      { lineups: await listLineups() },
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
@@ -19,17 +21,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    requireAdmin(await currentUser(request));
     const body = await readBody(request);
     if (!body || typeof body !== "object" || Array.isArray(body))
       throw new ApiError(400, "Choose a valid month.");
     const month = validateMonth((body as Record<string, unknown>).month);
-    const token = ownerToken(request) || newOwnerToken();
-    const { lineup, created } = await createLineup(month, token);
-    return setOwnerCookie(
-      NextResponse.json({ lineup }, { status: created ? 201 : 200 }),
-      request,
-      token,
-    );
+    const { lineup, created } = await createLineup(month);
+    return NextResponse.json({ lineup }, { status: created ? 201 : 200 });
   } catch (error) {
     return apiError(error);
   }

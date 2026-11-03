@@ -309,7 +309,7 @@ Package manager: npm (Node.js 20.9+).
 - Production server: `npm run start`
 - Typecheck: `npm run typecheck`
 - Test: `npm test` (Node test runner via `tsx --test`; the script lists test files explicitly)
-- API integration check: `npm run test:api` (needs the dev server running; creates and deletes temporary QA songs)
+- API integration check: `npm run test:api` (needs the dev server running and `ADMIN_USERNAME` / `ADMIN_PASSWORD` set to the server's admin; creates and deletes temporary QA songs, a lineup, and a user)
 
 No lint or format script is configured. No combined Verify command or GitHub
 workflow exists yet; run `/ci` to add them.

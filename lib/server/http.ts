@@ -2,22 +2,36 @@ import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "./validation";
 
-export const OWNER_COOKIE = "worshiply_owner";
-export function ownerToken(request: NextRequest) {
-  const token = request.cookies.get(OWNER_COOKIE)?.value;
+export const SESSION_COOKIE = "worshiply_session";
+export const SESSION_DAYS = 30;
+export function sessionToken(request: NextRequest) {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
   return token && /^[a-f0-9]{64}$/.test(token) ? token : undefined;
 }
-export function setOwnerCookie(
+export function setSessionCookie(
   response: NextResponse,
   request: NextRequest,
   token: string,
 ) {
-  response.cookies.set(OWNER_COOKIE, token, {
+  response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: request.nextUrl.protocol === "https:",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 365 * 5,
+    maxAge: 60 * 60 * 24 * SESSION_DAYS,
+  });
+  return response;
+}
+export function clearSessionCookie(
+  response: NextResponse,
+  request: NextRequest,
+) {
+  response.cookies.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: request.nextUrl.protocol === "https:",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
   });
   return response;
 }
