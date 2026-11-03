@@ -39,7 +39,7 @@ export function SongEditor({ slug }: { slug?: string }) {
         .then((data) => {
           if (!data.canEdit) {
             setError(
-              "This song can only be edited from the browser that created it. You can make your own copy from its song page.",
+              "Only the admin can edit songs.",
             );
             return;
           }
