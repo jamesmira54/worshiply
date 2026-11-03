@@ -58,12 +58,12 @@ export function checkOrigin(request: NextRequest) {
 export async function readBody(request: NextRequest): Promise<unknown> {
   checkOrigin(request);
   if (!request.headers.get("content-type")?.includes("application/json"))
-    throw new ApiError(415, "Send the song as JSON.");
+    throw new ApiError(415, "Send the request as JSON.");
   const maxBytes = 300000;
   if (Number(request.headers.get("content-length")) > maxBytes)
-    throw new ApiError(413, "This song is too large.");
+    throw new ApiError(413, "This request is too large.");
   const reader = request.body?.getReader();
-  if (!reader) throw new ApiError(400, "Provide a song to save.");
+  if (!reader) throw new ApiError(400, "The request body is empty.");
   const parts: Uint8Array[] = [];
   let size = 0;
   while (true) {
@@ -72,14 +72,14 @@ export async function readBody(request: NextRequest): Promise<unknown> {
     size += value.byteLength;
     if (size > maxBytes) {
       await reader.cancel();
-      throw new ApiError(413, "This song is too large.");
+      throw new ApiError(413, "This request is too large.");
     }
     parts.push(value);
   }
   try {
     return JSON.parse(Buffer.concat(parts).toString("utf8"));
   } catch {
-    throw new ApiError(400, "The song contains invalid JSON.");
+    throw new ApiError(400, "The request contains invalid JSON.");
   }
 }
 export function apiError(error: unknown) {
@@ -88,7 +88,7 @@ export function apiError(error: unknown) {
       { error: error.message },
       { status: error.status },
     );
-  console.error("Song API operation failed", {
+  console.error("API operation failed", {
     type: error instanceof Error ? error.name : "UnknownError",
   });
   return NextResponse.json(

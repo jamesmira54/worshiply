@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
@@ -43,9 +44,9 @@ export function currentUser(request: NextRequest) {
   return sessionAccount(sessionToken(request));
 }
 
-// For server components. A storage outage shows the signed-out view instead of
-// breaking public pages; the API reports the outage itself.
-export async function pageAccount() {
+// For server components, looked up once per request. A storage outage shows the
+// signed-out view instead of breaking public pages; the API reports the outage itself.
+export const pageAccount = cache(async () => {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   try {
     return await sessionAccount(token && /^[a-f0-9]{64}$/.test(token) ? token : undefined);
@@ -55,7 +56,7 @@ export async function pageAccount() {
     });
     return null;
   }
-}
+});
 
 export function requireAccount(account: Account | null): asserts account is Account {
   if (!account) throw new ApiError(401, "Sign in to continue.");
@@ -83,17 +84,21 @@ export async function signIn(body: unknown) {
     throw denied;
   }
   const now = new Date();
-  if (row.locked_until && String(row.locked_until) > now.toISOString())
-    throw new ApiError(429, `Too many attempts. Try again in ${LOCK_MINUTES} minutes.`);
+  const locked = new ApiError(429, `Too many attempts. Try again in ${LOCK_MINUTES} minutes.`);
+  // Reserve the attempt before checking the password, so parallel requests
+  // cannot get more than MAX_FAILURES guesses in one window.
+  const reserved = await db.execute({
+    sql: "UPDATE users SET failed_attempts = failed_attempts + 1 WHERE id = ? AND (locked_until IS NULL OR locked_until <= ?) RETURNING failed_attempts",
+    args: [row.id, now.toISOString()],
+  });
+  const attempt = Number(reserved.rows[0]?.failed_attempts ?? Infinity);
+  if (attempt > MAX_FAILURES) throw locked;
   if (!(await verifyPassword(input.password, String(row.password_hash)))) {
-    const lockedUntil = new Date(now.getTime() + LOCK_MINUTES * 60000).toISOString();
-    await db.execute({
-      sql: `UPDATE users SET
-        locked_until = CASE WHEN failed_attempts + 1 >= ? THEN ? ELSE locked_until END,
-        failed_attempts = CASE WHEN failed_attempts + 1 >= ? THEN 0 ELSE failed_attempts + 1 END
-        WHERE id = ?`,
-      args: [MAX_FAILURES, lockedUntil, MAX_FAILURES, row.id],
-    });
+    if (attempt === MAX_FAILURES)
+      await db.execute({
+        sql: "UPDATE users SET locked_until = ?, failed_attempts = 0 WHERE id = ?",
+        args: [new Date(now.getTime() + LOCK_MINUTES * 60000).toISOString(), row.id],
+      });
     throw denied;
   }
   const token = randomBytes(32).toString("hex");
@@ -108,6 +113,8 @@ export async function signIn(body: unknown) {
         sql: "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)",
         args: [tokenHash(token), row.id, expires],
       },
+      // Abandoned sessions are cleared here, so the table cannot grow forever.
+      { sql: "DELETE FROM sessions WHERE expires_at <= ?", args: [now.toISOString()] },
     ],
     "write",
   );

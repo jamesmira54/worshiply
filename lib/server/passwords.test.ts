@@ -43,6 +43,16 @@ test("passwords must be 10-200 characters and are not trimmed", () => {
 test("sign-in redirects stay on this site", () => {
   assert.equal(safeNext("/lineups"), "/lineups");
   assert.equal(safeNext("/songs/new?x=1"), "/songs/new?x=1");
-  for (const bad of ["//evil.example", "/\\evil.example", "https://evil.example", "", undefined])
+  assert.equal(safeNext("/songs/a#b"), "/songs/a#b");
+  for (const bad of [
+    "//evil.example",
+    "/\\evil.example",
+    "/\t/evil.example",
+    "/\n/evil.example",
+    "/\r\n/evil.example",
+    "https://evil.example",
+    "",
+    undefined,
+  ])
     assert.equal(safeNext(bad), "/songs");
 });

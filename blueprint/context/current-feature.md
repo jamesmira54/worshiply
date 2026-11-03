@@ -119,6 +119,17 @@ step commits. `/complete` makes the single feature commit.
   **Done when:** `npm run typecheck`, `npm test`, `npm run build` pass and
   `npm run test:api` passes against the dev server with admin env set.
 
+- [x] **9. Independent review repairs (F-01 to F-06).** F-01: `safeNext`
+  resolves `next` against a fixed origin and keeps only same-origin paths, so
+  tab/newline/backslash tricks fall back to `/songs`. F-02: sign-in reserves an
+  attempt with a conditional update before checking the password, so parallel
+  guesses cannot exceed the limit. F-03: restore "Make a copy" on the song page
+  for the admin. F-04: sign-in also deletes expired sessions. F-05: wrap
+  `pageAccount` in React `cache()` so one request does one session lookup.
+  F-06: shared body and error helpers use generic, not song-specific, messages.
+  **Done when:** typecheck, `npm test` (with new `safeNext` cases for tab and
+  newline), `npm run build`, and `npm run test:api` pass; findings marked `fixed`.
+
 ## Files / areas
 
 - New: `lib/server/auth.ts`, `lib/server/passwords.ts`,

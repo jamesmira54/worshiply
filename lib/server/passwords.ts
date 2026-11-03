@@ -52,11 +52,15 @@ export function validatePassword(value: unknown) {
 }
 
 // Only same-site paths are allowed after sign-in, never another origin.
+// Resolving like a browser catches tricks such as "//", "/\\", or "/\t/".
 export function safeNext(value: unknown) {
-  return typeof value === "string" &&
-    value.startsWith("/") &&
-    !value.startsWith("//") &&
-    !value.startsWith("/\\")
-    ? value
-    : "/songs";
+  const base = "http://local.invalid";
+  if (typeof value !== "string" || !value.startsWith("/")) return "/songs";
+  try {
+    const url = new URL(value, base);
+    if (url.origin === base) return url.pathname + url.search + url.hash;
+  } catch {
+    /* Unparseable values fall back below. */
+  }
+  return "/songs";
 }

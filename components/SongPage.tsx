@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, PenLine, Printer } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, PenLine, Copy, Printer } from "lucide-react";
 import type { Song } from "@/types/song";
 import { api } from "@/lib/api";
 import { ChordSheet } from "./chord-sheet/ChordSheet";
@@ -16,10 +17,12 @@ export function SongPage({
   slug: string;
   lineupId?: string;
 }) {
+  const router = useRouter();
   const [song, setSong] = useState<Song | null>(null);
   const [canonical, setCanonical] = useState<Song | null>(null);
   const [canEdit, setCanEdit] = useState(false);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     api<{ song: Song; canEdit: boolean }>(
@@ -36,6 +39,23 @@ export function SongPage({
       });
     return () => controller.abort();
   }, [slug]);
+  async function duplicate() {
+    if (!canonical) return;
+    setBusy(true);
+    try {
+      const result = await api<{ song: Song }>("/api/songs", {
+        method: "POST",
+        body: JSON.stringify({
+          ...canonical,
+          title: `${canonical.title} (copy)`.slice(0, 160),
+        }),
+      });
+      router.push(`/songs/${result.song.slug}/edit`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not duplicate song.");
+      setBusy(false);
+    }
+  }
   if (!song)
     return (
       <main className="state-panel">
@@ -69,9 +89,19 @@ export function SongPage({
           </button>
           <ExportMenu song={song} />
           {canEdit && (
-            <Link className="button primary" href={`/songs/${song.slug}/edit`}>
-              <PenLine size={16} /> Edit song
-            </Link>
+            <>
+              <button
+                className="button"
+                disabled={busy}
+                onClick={() => void duplicate()}
+              >
+                <Copy size={16} />
+                {busy ? "Copying…" : "Make a copy"}
+              </button>
+              <Link className="button primary" href={`/songs/${song.slug}/edit`}>
+                <PenLine size={16} /> Edit song
+              </Link>
+            </>
           )}
         </div>
       </div>
