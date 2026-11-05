@@ -2460,3 +2460,211 @@ code {
     padding: 24px 20px;
   }
 }
+
+/* Performance mode */
+.performance-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: white;
+}
+.performance-dialog::backdrop {
+  background: white;
+}
+.performance-stage {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: white;
+  outline: none;
+}
+.performance-controls {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 16px;
+  background: #ffffffee;
+  border-bottom: 1px solid #e0e8e4;
+}
+.performance-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.performance-controls .button,
+.performance-controls .icon-button {
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+}
+.performance-controls .icon-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.performance-value {
+  min-width: 5.5em;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.performance-stage .chord-sheet,
+.performance-stage .chord-sheet.landscape {
+  max-width: none;
+  min-height: 0;
+  border: 0;
+  box-shadow: none;
+  padding: 20px clamp(16px, 4vw, 56px) 30vh;
+}
+.performance-stage .sheet-eyebrow,
+.performance-stage .sheet-footer {
+  display: none;
+}
+.performance-nav-title {
+  max-width: 12em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.performance-error {
+  margin: 12px 16px 0;
+}
+.performance-row {
+  display: contents;
+}
+.performance-short {
+  display: none;
+}
+/* Phones: icon-only buttons and short counts in two fixed rows. */
+@media (max-width: 640px) {
+  .performance-controls {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .performance-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .performance-group {
+    gap: 2px;
+  }
+  .performance-controls .button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .performance-label {
+    display: none;
+  }
+  .performance-value {
+    min-width: 2.6em;
+  }
+  .performance-short {
+    display: inline;
+  }
+  .performance-long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+/* Header menu: inline on wide screens, a hamburger panel at 860px and below. */
+.header-menu {
+  display: contents;
+}
+.menu-toggle {
+  display: none;
+}
+@media (max-width: 860px) {
+  .app-header {
+    position: relative;
+    gap: 12px;
+    justify-content: space-between;
+  }
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .header-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    flex-direction: column;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 12px 24px #17334214;
+    padding: 8px 22px 16px;
+  }
+  .header-menu.open {
+    display: flex;
+  }
+  .header-menu nav {
+    flex-direction: column;
+    height: auto;
+    gap: 0;
+    font-size: 15px;
+  }
+  .header-menu nav a {
+    height: auto;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 8px;
+  }
+  .header-menu nav a.active {
+    background: #eef8f1;
+  }
+  .header-menu nav a.active:after {
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    right: auto;
+    width: 3px;
+    height: auto;
+    border-radius: 3px;
+  }
+  .header-menu nav svg {
+    display: inline;
+  }
+  .header-menu .header-note {
+    display: none;
+  }
+  .header-menu .header-account {
+    margin: 8px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    justify-content: space-between;
+    font-size: 14px;
+  }
+  .header-menu .header-user {
+    display: inline;
+    padding-left: 12px;
+  }
+  .header-menu .header-account .button {
+    padding: 8px 14px;
+  }
+  .header-menu .header-account .button span {
+    display: inline;
+  }
+}

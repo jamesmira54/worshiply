@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Link2, Trash2, X } from "lucide-react";
 import { api } from "@/lib/api";
-import { SLOTS, formatMonth, formatSunday } from "@/lib/lineups";
+import { SLOTS, formatMonth, formatSunday, lineupSongHref } from "@/lib/lineups";
 import type { Lineup, SlotKey } from "@/types/lineup";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { SlotPicker } from "./SlotPicker";
@@ -136,7 +136,14 @@ export function LineupPage({ id }: { id: string }) {
                         ) : "removed" in value ? (
                           <span className="slot-removed">Song removed</span>
                         ) : (
-                          <Link href={`/songs/${value.slug}?lineup=${lineup.id}`} className="slot-song">
+                          <Link
+                            href={lineupSongHref(value.slug, {
+                              id: lineup.id,
+                              sunday: sunday.date,
+                              slot: slot.key,
+                            })}
+                            className="slot-song"
+                          >
                             <strong>{value.title}</strong>
                             <small>{value.artist || "Your arrangement"}</small>
                             <span className="key-badge">{value.defaultKey}</span>
