@@ -2,22 +2,36 @@ import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "./validation";
 
-export const OWNER_COOKIE = "worshiply_owner";
-export function ownerToken(request: NextRequest) {
-  const token = request.cookies.get(OWNER_COOKIE)?.value;
+export const SESSION_COOKIE = "worshiply_session";
+export const SESSION_DAYS = 30;
+export function sessionToken(request: NextRequest) {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
   return token && /^[a-f0-9]{64}$/.test(token) ? token : undefined;
 }
-export function setOwnerCookie(
+export function setSessionCookie(
   response: NextResponse,
   request: NextRequest,
   token: string,
 ) {
-  response.cookies.set(OWNER_COOKIE, token, {
+  response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: request.nextUrl.protocol === "https:",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 365 * 5,
+    maxAge: 60 * 60 * 24 * SESSION_DAYS,
+  });
+  return response;
+}
+export function clearSessionCookie(
+  response: NextResponse,
+  request: NextRequest,
+) {
+  response.cookies.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: request.nextUrl.protocol === "https:",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
   });
   return response;
 }
@@ -44,12 +58,12 @@ export function checkOrigin(request: NextRequest) {
 export async function readBody(request: NextRequest): Promise<unknown> {
   checkOrigin(request);
   if (!request.headers.get("content-type")?.includes("application/json"))
-    throw new ApiError(415, "Send the song as JSON.");
+    throw new ApiError(415, "Send the request as JSON.");
   const maxBytes = 300000;
   if (Number(request.headers.get("content-length")) > maxBytes)
-    throw new ApiError(413, "This song is too large.");
+    throw new ApiError(413, "This request is too large.");
   const reader = request.body?.getReader();
-  if (!reader) throw new ApiError(400, "Provide a song to save.");
+  if (!reader) throw new ApiError(400, "The request body is empty.");
   const parts: Uint8Array[] = [];
   let size = 0;
   while (true) {
@@ -58,14 +72,14 @@ export async function readBody(request: NextRequest): Promise<unknown> {
     size += value.byteLength;
     if (size > maxBytes) {
       await reader.cancel();
-      throw new ApiError(413, "This song is too large.");
+      throw new ApiError(413, "This request is too large.");
     }
     parts.push(value);
   }
   try {
     return JSON.parse(Buffer.concat(parts).toString("utf8"));
   } catch {
-    throw new ApiError(400, "The song contains invalid JSON.");
+    throw new ApiError(400, "The request contains invalid JSON.");
   }
 }
 export function apiError(error: unknown) {
@@ -74,7 +88,7 @@ export function apiError(error: unknown) {
       { error: error.message },
       { status: error.status },
     );
-  console.error("Song API operation failed", {
+  console.error("API operation failed", {
     type: error instanceof Error ? error.name : "UnknownError",
   });
   return NextResponse.json(

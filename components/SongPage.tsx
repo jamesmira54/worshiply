@@ -88,19 +88,20 @@ export function SongPage({
             <Printer size={16} /> Print
           </button>
           <ExportMenu song={song} />
-          {canEdit ? (
-            <Link className="button primary" href={`/songs/${song.slug}/edit`}>
-              <PenLine size={16} /> Edit song
-            </Link>
-          ) : (
-            <button
-              className="button primary"
-              disabled={busy}
-              onClick={() => void duplicate()}
-            >
-              <Copy size={16} />
-              {busy ? "Copying…" : "Make a copy"}
-            </button>
+          {canEdit && (
+            <>
+              <button
+                className="button"
+                disabled={busy}
+                onClick={() => void duplicate()}
+              >
+                <Copy size={16} />
+                {busy ? "Copying…" : "Make a copy"}
+              </button>
+              <Link className="button primary" href={`/songs/${song.slug}/edit`}>
+                <PenLine size={16} /> Edit song
+              </Link>
+            </>
           )}
         </div>
       </div>

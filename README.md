@@ -25,14 +25,19 @@ npm start
 - `types/song.ts` defines the persisted source and presentation preferences. Lyrics remain original editable bracket syntax; generated HTML is never stored.
 - `lib/chord-parser.ts`, `lib/chord-transposer.ts`, and `lib/chord-diagrams.ts` are independent of React.
 - `components/editor/` owns the editing workflow, metadata, and controls. `components/chord-sheet/` renders the same normalized data used by the exporters.
-- `lib/server/db.ts` provides the data-access boundary. Route handlers validate inputs, check ownership and request origins, and never send ownership hashes to clients.
+- `lib/server/db.ts` provides the data-access boundary. Route handlers validate inputs, check the signed-in role and request origins, and never send password or session hashes to clients. `lib/server/auth.ts` owns sign-in, sessions, and user management.
 - `lib/export/` shares wrapping, metadata, chord parsing, and diagram data across exporters. **jsPDF** creates selectable PDF text with embedded Noto Sans fonts; **docx** creates editable Word text and fixed-width chord/lyric cells, readable by Google Docs. Only the instrument diagrams are raster images.
 
 ## Persistence and sharing
 
 Songs persist in `data/worshiply.db`, outside source control. Restarting the server does not erase them. Back up this file before moving the application. Optional `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` use the same repository with remote storage; see `.env.example`.
 
-All saved songs in this MVP are publicly readable by people who can reach the server. A random, HTTP-only, same-site cookie grants edit/delete access only to the browser that created a song. A visitor may view, transpose temporarily, print, export, or create a separate copy. This is a minimal ownership mechanism, **not team account authentication**: clearing cookies loses edit access, and cross-device editing needs an authentication provider and an owner-account mapping. Add those before using this as a private or access-controlled team library. Public deployment should also add a creation rate limit at the host or authentication boundary.
+All saved songs are publicly readable by people who can reach the server: anyone may view, transpose temporarily, print, export, or share them. There are two account roles:
+
+- **Admin** - one account, defined by `ADMIN_USERNAME` and `ADMIN_PASSWORD` (see `.env.example`). It can create, edit, and delete songs and monthly lineups, and manage users at `/users`. Changing either variable replaces the admin and signs it out on the next startup. Without them, nobody can sign in as admin.
+- **User** - created by the admin. Users can see everything, including monthly lineups, but cannot change anything.
+
+Sign-in uses an HTTP-only, same-site session cookie that lasts 30 days. Passwords are stored as scrypt hashes. Five wrong passwords in a row lock that account for 15 minutes. There is no public sign-up or password recovery; the admin resets user passwords.
 
 For access beyond this computer, deploy the Next.js Node server to a host with persistent storage or configure Turso. `localhost` links are for local preview only. Set `APP_ORIGIN` to the deployed HTTPS origin. Do not deploy a local SQLite database to an ephemeral serverless filesystem. No cloud services, production database, or deployment are provisioned by this repository.
 
@@ -42,13 +47,11 @@ Vercel does not provide persistent local SQLite storage. The app refuses to use 
 
 1. Create a Turso database and obtain its database URL and authentication token.
 2. In Vercel project settings, add `TURSO_DATABASE_URL` (the `libsql://...` URL) and `TURSO_AUTH_TOKEN` to the **Production** environment. Keep the token private.
-3. Set `APP_ORIGIN` to `https://worshiply.azelandjames.com`.
+3. Set `APP_ORIGIN` to `https://worshiply.azelandjames.com`, and add `ADMIN_USERNAME` and `ADMIN_PASSWORD` so the admin can sign in.
 4. Redeploy. The app creates its tables automatically in the remote database. Keep using the same database URL for subsequent deployments.
 5. Save a song, redeploy again, and verify that the song and its URL still work.
 
 Use a separate database for Preview deployments if you enable saving there. Existing local songs are not automatically copied into Turso; preserve any available `data/worshiply.db` backup before migrating. Connecting a new database does not recover records from a discarded filesystem.
-
-Changing domains also changes access to the ownership cookie: songs can remain present while editing access is lost. That is separate from database persistence.
 
 ## Music and documents
 
@@ -61,7 +64,7 @@ Changing domains also changes access to the ownership cookie: songs can remain p
 
 ## Verification
 
-Unit tests cover parsing and whitespace, slash/modifier transposition, unique chords, guitar/piano pitch data, export wrapping, editable DOCX structure, PDF pagination, filename sanitization, and API validation. The implementation was also checked through the running API for persistence, slug collisions, search/filter, owner-only changes, cross-origin rejection, and cleanup.
+Unit tests cover parsing and whitespace, slash/modifier transposition, unique chords, guitar/piano pitch data, export wrapping, editable DOCX structure, PDF pagination, filename sanitization, and API validation. `npm run test:api` checks the running API for persistence, slug collisions, search/filter, admin-only changes, read-only users, user management, sign-in lockout, cross-origin rejection, and cleanup. It needs the dev server running and the same `ADMIN_USERNAME` / `ADMIN_PASSWORD` in its environment.
 
 With the local server running, `npm run test:api` repeats the API checks using temporary QA songs and deletes only the records it creates.
 

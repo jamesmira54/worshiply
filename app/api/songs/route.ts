@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSong, listSongs, newOwnerToken } from "@/lib/server/db";
-import {
-  apiError,
-  ownerToken,
-  readBody,
-  setOwnerCookie,
-} from "@/lib/server/http";
+import { createSong, listSongs } from "@/lib/server/db";
+import { currentUser, requireAdmin } from "@/lib/server/auth";
+import { apiError, readBody } from "@/lib/server/http";
 import { ApiError, validateSong } from "@/lib/server/validation";
 
 export const runtime = "nodejs";
@@ -17,6 +13,7 @@ export async function GET(request: NextRequest) {
     const page = Number(params.get("page") || "1");
     if (!Number.isSafeInteger(page) || page < 1 || page > 100000)
       throw new ApiError(400, "Choose a valid page.");
+    const account = await currentUser(request);
     const result = await listSongs(
       {
         search: (params.get("search") || "").slice(0, 160),
@@ -25,7 +22,7 @@ export async function GET(request: NextRequest) {
         sort: params.get("sort") || "updated",
         page,
       },
-      ownerToken(request),
+      account?.role === "admin",
     );
     return NextResponse.json(result, {
       headers: { "Cache-Control": "private, no-store" },
@@ -37,14 +34,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    requireAdmin(await currentUser(request));
     const input = validateSong(await readBody(request));
-    const token = ownerToken(request) || newOwnerToken();
-    const song = await createSong(input, token);
-    return setOwnerCookie(
-      NextResponse.json({ song, canEdit: true }, { status: 201 }),
-      request,
-      token,
-    );
+    const song = await createSong(input);
+    return NextResponse.json({ song, canEdit: true }, { status: 201 });
   } catch (error) {
     return apiError(error);
   }

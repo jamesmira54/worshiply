@@ -12,7 +12,7 @@ function currentMonth() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export function LineupList() {
+export function LineupList({ canEdit }: { canEdit: boolean }) {
   const router = useRouter();
   const [lineups, setLineups] = useState<LineupSummary[] | null>(null);
   const [error, setError] = useState("");
@@ -60,31 +60,33 @@ export function LineupList() {
           <p>Singspiration, two worship songs, and a closing song for every Sunday.</p>
         </div>
       </div>
-      <form className="lineup-create" onSubmit={(e) => void open(e)}>
-        <label className="filter-select">
-          <span>Month</span>
-          <input
-            type="month"
-            required
-            min="2000-01"
-            max="2100-12"
-            value={month}
-            aria-describedby={createError ? "lineup-create-error" : undefined}
-            onChange={(e) => {
-              setMonth(e.target.value);
-              setCreateError("");
-            }}
-          />
-        </label>
-        <button className="button primary" disabled={busy || !month}>
-          <Plus size={17} /> {busy ? "Opening…" : "Plan this month"}
-        </button>
-        {createError && (
-          <p id="lineup-create-error" className="field-error" role="alert">
-            {createError}
-          </p>
-        )}
-      </form>
+      {canEdit && (
+        <form className="lineup-create" onSubmit={(e) => void open(e)}>
+          <label className="filter-select">
+            <span>Month</span>
+            <input
+              type="month"
+              required
+              min="2000-01"
+              max="2100-12"
+              value={month}
+              aria-describedby={createError ? "lineup-create-error" : undefined}
+              onChange={(e) => {
+                setMonth(e.target.value);
+                setCreateError("");
+              }}
+            />
+          </label>
+          <button className="button primary" disabled={busy || !month}>
+            <Plus size={17} /> {busy ? "Opening…" : "Plan this month"}
+          </button>
+          {createError && (
+            <p id="lineup-create-error" className="field-error" role="alert">
+              {createError}
+            </p>
+          )}
+        </form>
+      )}
       {error && (
         <div className="notice error" role="alert">
           {error}
@@ -93,7 +95,7 @@ export function LineupList() {
       )}
       {!lineups && !error ? (
         <p className="lineup-loading" role="status">
-          Loading your lineups…
+          Loading lineups…
         </p>
       ) : lineups?.length ? (
         <ul className="lineup-grid">
@@ -123,7 +125,11 @@ export function LineupList() {
             <CalendarDays size={32} strokeWidth={1.4} />
           </span>
           <h2>No lineups yet.</h2>
-          <p>Choose a month above to plan its Sunday songs.</p>
+          <p>
+            {canEdit
+              ? "Choose a month above to plan its Sunday songs."
+              : "Your admin hasn't planned any months yet."}
+          </p>
         </div>
       ) : null}
     </main>
