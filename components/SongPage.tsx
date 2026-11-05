@@ -1,21 +1,25 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PenLine, Copy, Printer } from "lucide-react";
+import { ArrowLeft, PenLine, Copy, Printer, MonitorPlay } from "lucide-react";
 import type { Song } from "@/types/song";
 import { api } from "@/lib/api";
 import { ChordSheet } from "./chord-sheet/ChordSheet";
 import { EditorToolbar } from "./editor/EditorToolbar";
 import { ExportMenu } from "./export/ExportMenu";
 import { ShareMenu } from "./ShareMenu";
+import { PerformanceView } from "./performance/PerformanceView";
+import { lineupSongHref, type LineupPlace } from "@/lib/lineups";
 
 export function SongPage({
   slug,
   lineupId,
+  place,
 }: {
   slug: string;
   lineupId?: string;
+  place?: LineupPlace;
 }) {
   const router = useRouter();
   const [song, setSong] = useState<Song | null>(null);
@@ -23,6 +27,18 @@ export function SongPage({
   const [canEdit, setCanEdit] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [performing, setPerforming] = useState(false);
+  const performButton = useRef<HTMLButtonElement>(null);
+  function stopPerforming(showing?: { slug: string; slot: LineupPlace["slot"] }) {
+    setPerforming(false);
+    // After stepping through a lineup Sunday, land on the song that was showing.
+    if (place && showing && (showing.slug !== slug || showing.slot !== place.slot)) {
+      router.replace(lineupSongHref(showing.slug, { ...place, slot: showing.slot }));
+      return;
+    }
+    // Wait for the dialog to close before handing focus back.
+    requestAnimationFrame(() => performButton.current?.focus());
+  }
   useEffect(() => {
     const controller = new AbortController();
     api<{ song: Song; canEdit: boolean }>(
@@ -83,6 +99,13 @@ export function SongPage({
           <p>Ready for rehearsal. Ready to share.</p>
         </div>
         <div className="page-actions">
+          <button
+            ref={performButton}
+            className="button"
+            onClick={() => setPerforming(true)}
+          >
+            <MonitorPlay size={16} /> Perform
+          </button>
           <ShareMenu slug={song.slug} title={song.title} />
           <button className="button" onClick={() => window.print()}>
             <Printer size={16} /> Print
@@ -128,6 +151,9 @@ export function SongPage({
       <div className="song-view-canvas">
         <ChordSheet song={song} />
       </div>
+      {performing && (
+        <PerformanceView song={song} lineup={place} onClose={stopPerforming} />
+      )}
     </main>
   );
 }

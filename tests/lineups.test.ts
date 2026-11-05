@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SLOTS, sundaysInMonth, formatSunday } from "../lib/lineups";
+import { SLOTS, sundaysInMonth, formatSunday, sundayQueue } from "../lib/lineups";
+import type { Lineup, LineupSong } from "../types/lineup";
 import {
   ApiError,
   validateMonth,
@@ -66,6 +67,51 @@ test("slot assignments are bounded to the month, known slots, and song ids", () 
     { sunday: "2026-10-04", slot: "closing" },
   ])
     assert.throws(() => validateSlotAssignment(input, "2026-10"), ApiError);
+});
+
+const song = (slug: string): LineupSong => ({
+  id: SONG_ID,
+  slug,
+  title: `Title ${slug}`,
+  artist: "",
+  category: "Praise & Worship",
+  defaultKey: "C",
+});
+const lineup: Lineup = {
+  id: "lineup",
+  month: "2026-10",
+  updatedAt: "",
+  sundays: [
+    {
+      date: "2026-10-04",
+      slots: { singspiration: song("a"), worship1: song("b"), worship2: song("c"), closing: song("d") },
+    },
+    {
+      date: "2026-10-11",
+      slots: { singspiration: null, worship1: song("b"), worship2: { removed: true }, closing: song("b") },
+    },
+  ],
+};
+
+test("a Sunday queue lists assigned songs in slot order", () => {
+  assert.deepEqual(
+    sundayQueue(lineup, "2026-10-04").map((item) => [item.slot, item.slug]),
+    [["singspiration", "a"], ["worship1", "b"], ["worship2", "c"], ["closing", "d"]],
+  );
+  assert.deepEqual(sundayQueue(lineup, "2026-10-04")[1], {
+    slot: "worship1",
+    label: "Worship song 1",
+    slug: "b",
+    title: "Title b",
+  });
+});
+
+test("a Sunday queue skips empty and removed slots and keeps repeats", () => {
+  assert.deepEqual(
+    sundayQueue(lineup, "2026-10-11").map((item) => [item.slot, item.slug]),
+    [["worship1", "b"], ["closing", "b"]],
+  );
+  assert.deepEqual(sundayQueue(lineup, "2026-10-18"), []);
 });
 
 test("slot categories match the Sunday lineup rules", () => {

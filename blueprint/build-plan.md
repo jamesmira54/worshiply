@@ -25,7 +25,7 @@ Items 1-11 shipped before the Blueprint was adopted.
 - [x] 15. **Monthly song lineup** - plan each month's Sundays (every Sunday on the calendar), assigning 4 songs per Sunday: 1 Singspiration, 2 Worship (Praise & Worship), and 1 Closing (any category); slot pickers filter by category
 - [x] 12. **Accounts** - real sign-in so song ownership works across devices, replacing cookie-only ownership
 - [ ] 13. **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document
-- [ ] 14. **Performance mode** - full-screen, large-text or auto-scroll view for playing live
+- [x] 14. **Performance mode** - full-screen, large-text or auto-scroll view for playing live
 
 Item 15 was added after 12-14 and is built first. Build order follows list order, not ID.
 
