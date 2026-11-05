@@ -145,7 +145,7 @@ export async function listSongs(
   );
   return {
     songs: rows.rows.map((row) => ({
-      ...{ category: DEFAULT_CATEGORY, ...JSON.parse(String(row.data)) } as Song,
+      ...{ category: DEFAULT_CATEGORY, referenceVideo: "", ...JSON.parse(String(row.data)) } as Song,
       canEdit,
     })),
     total: Number(count.rows[0].total),
@@ -163,7 +163,7 @@ export async function findSong(slug: string, canEdit: boolean) {
   const row = result.rows[0];
   if (!row) throw new ApiError(404, "This song could not be found.");
   return {
-    song: { category: DEFAULT_CATEGORY, ...JSON.parse(String(row.data)) } as Song,
+    song: { category: DEFAULT_CATEGORY, referenceVideo: "", ...JSON.parse(String(row.data)) } as Song,
     canEdit,
   };
 }

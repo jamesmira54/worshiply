@@ -43,13 +43,16 @@ Next (see `build-plan.md`):
   Singspiration slot offers Singspiration songs, the Worship slots offer Praise &
   Worship songs, and the Closing slot accepts any song.
 - Accounts, setlists, performance mode.
+- Reference video: an optional YouTube link on each song, so a team member who
+  doesn't know a song can watch the original and get familiar with it.
 
 ## 4. Data - What are we storing?
 
 - **Songs** - one `songs` table: id, unique slug, title, artist, original key,
   updated time, an owner hash, and a JSON `data` column holding the full song
-  (lyrics source, metadata, and presentation preferences such as font size,
-  diagram type, chord visibility, and orientation). Generated HTML is never stored.
+  (lyrics source, metadata, an optional YouTube reference video link, and
+  presentation preferences such as font size, diagram type, chord visibility,
+  and orientation). Generated HTML is never stored.
 - **Monthly lineups** - per month, one entry per Sunday date, each with four
   song slots (Singspiration, Worship 1, Worship 2, Closing) referencing saved songs.
   > TODO (confirm): who may edit a month's lineup while ownership is cookie-only,

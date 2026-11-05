@@ -10,6 +10,7 @@ import { EditorToolbar } from "./editor/EditorToolbar";
 import { ExportMenu } from "./export/ExportMenu";
 import { ShareMenu } from "./ShareMenu";
 import { PerformanceView } from "./performance/PerformanceView";
+import { ReferenceVideo } from "./ReferenceVideo";
 import { lineupSongHref, type LineupPlace } from "@/lib/lineups";
 
 export function SongPage({
@@ -148,6 +149,9 @@ export function SongPage({
           </span>
         </div>
       </div>
+      {canonical && (
+        <ReferenceVideo url={canonical.referenceVideo} title={canonical.title} />
+      )}
       <div className="song-view-canvas">
         <ChordSheet song={song} />
       </div>
