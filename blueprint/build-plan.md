@@ -26,7 +26,7 @@ Items 1-11 shipped before the Blueprint was adopted.
 - [x] 12. **Accounts** - real sign-in so song ownership works across devices, replacing cookie-only ownership
 - [ ] 13. **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document
 - [x] 14. **Performance mode** - full-screen, large-text or auto-scroll view for playing live
-- [ ] 16. **Reference video** - optional YouTube link on each song so team members can hear the original before rehearsal
+- [x] 16. **Reference video** - optional YouTube link on each song so team members can hear the original before rehearsal
 
 Item 15 was added after 12-14 and is built first. Build order follows list order, not ID.
 
