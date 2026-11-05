@@ -3,6 +3,26 @@ import test from "node:test";
 import { ApiError, validateSong } from "./validation";
 import { SONG_CATEGORIES } from "../../types/song";
 
+test("reference videos are optional and stored in canonical form", () => {
+  assert.equal(validateSong({ title: "Legacy" }).referenceVideo, "");
+  assert.equal(validateSong({ title: "Song", referenceVideo: "  " }).referenceVideo, "");
+  // null is treated as missing, like every other song field.
+  assert.equal(validateSong({ title: "Song", referenceVideo: null }).referenceVideo, "");
+  assert.equal(
+    validateSong({ title: "Song", referenceVideo: " https://youtu.be/dQw4w9WgXcQ?t=5 " })
+      .referenceVideo,
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  );
+  for (const referenceVideo of [
+    "hello",
+    "https://vimeo.com/123456",
+    "https://youtube.com.evil.example/watch?v=dQw4w9WgXcQ",
+    `https://youtu.be/dQw4w9WgXcQ?x=${"a".repeat(300)}`,
+    42,
+  ])
+    assert.throws(() => validateSong({ title: "Song", referenceVideo }), ApiError);
+});
+
 test("categories are fixed and older songs receive a default", () => {
   assert.equal(validateSong({ title: "Legacy" }).category, "Praise & Worship");
   for (const category of SONG_CATEGORIES)

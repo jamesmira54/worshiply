@@ -4,6 +4,7 @@ import { SONG_CATEGORIES, DEFAULT_CATEGORY } from "@/types/song";
 import { DismissibleDetails } from "../DismissibleDetails";
 import type { SongInput } from "@/types/song";
 import { EditorToolbar, KEY_OPTIONS } from "./EditorToolbar";
+import { youTubeId } from "@/lib/youtube";
 export function SongMetadata({
   song,
   change,
@@ -11,6 +12,8 @@ export function SongMetadata({
   song: SongInput;
   change: (patch: Partial<SongInput>) => void;
 }) {
+  const video = song.referenceVideo.trim();
+  const videoInvalid = video !== "" && youTubeId(video) === null;
   return (
     <section className="metadata-panel no-print" aria-label="Song information">
       <div className="metadata-main">
@@ -88,6 +91,24 @@ export function SongMetadata({
               <select value={song.category ?? DEFAULT_CATEGORY} onChange={(e) => change({ category: e.target.value as SongInput["category"] })}>
                 {SONG_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
               </select>
+            </label>
+            <label className="video-field">
+              Reference video
+              <input
+                type="url"
+                inputMode="url"
+                value={song.referenceVideo}
+                onChange={(e) => change({ referenceVideo: e.target.value })}
+                placeholder="https://youtu.be/…"
+                maxLength={300}
+                aria-invalid={videoInvalid || undefined}
+                aria-describedby={videoInvalid ? "reference-video-hint" : undefined}
+              />
+              {videoInvalid && (
+                <span id="reference-video-hint" className="field-hint">
+                  Use a YouTube video link, like https://youtu.be/…
+                </span>
+              )}
             </label>
             <label className="notes-field">
               Notes

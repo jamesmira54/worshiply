@@ -1,6 +1,6 @@
 # Worshiply - Project Overview
 
-<!-- blueprint:source-hash 71819fa89bc7d5bf3e7fb12875cff37e77110c4df1f1f27e08b0736c8f1d1963 -->
+<!-- blueprint:source-hash 7c45545290f2e52615a8d0a99b9111a4043122f232b20d6cfa8861033686e3cb -->
 
 > A web app where church worship teams write, transpose, share, print, and export chord sheets.
 
@@ -45,10 +45,13 @@ editor and view (2-3), with export (9-10).
 9. [x] **PDF export** - A4 portrait/landscape, embedded Noto Sans, page numbers.
 10. [x] **Word export** - editable DOCX, readable by Google Docs.
 11. [x] **Print styles** - print the chord sheet without the editing interface.
-15. [ ] **Monthly song lineup** - every calendar Sunday of a month gets 4 slots: Singspiration, Worship x2, Closing. **Next** (added later, built first).
-12. [ ] **Accounts** - real sign-in so ownership works across devices, replacing cookie-only ownership.
-13. [ ] **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document.
-14. [ ] **Performance mode** - full-screen, large-text or auto-scroll view for playing live.
+15. [x] **Monthly song lineup** - every calendar Sunday of a month gets 4 slots: Singspiration, Worship x2, Closing (added later, built first).
+12. [x] **Accounts** - real sign-in so ownership works across devices, replacing cookie-only ownership.
+13. [ ] **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document. **Next.**
+14. [x] **Performance mode** - full-screen, large-text or auto-scroll view for playing live.
+16. [ ] **Reference video** - optional YouTube link on each song so a team member who doesn't know a song can watch the original before rehearsal.
+
+Build order follows list order, not ID.
 
 ## Data model
 
@@ -73,6 +76,8 @@ Stored columns (indexed on `updated_at DESC` and `original_key`):
 - `chordDiagramType` (`"guitar" | "piano" | "both" | "none"`)
 - `fontSize` (number), `showChords` (boolean), `orientation` (`"portrait" | "landscape"`)
 - `createdAt`, `updatedAt` (string, ISO)
+- Planned (feature 16): an optional YouTube reference video link, stored in the
+  JSON document. Field name, accepted URL forms, and display are decided in `/feature 16`.
 
 `SongInput` is `Song` without `id`, `slug`, `createdAt`, `updatedAt`.
 
@@ -144,3 +149,7 @@ editing interface is hidden when printing.
 - Feature 15: edit permissions under cookie-only ownership, and deleted-song handling.
 - The order of features 12-14 is unconfirmed. Setlists and performance mode do
   not obviously depend on accounts.
+- The project plan still describes cookie-only ownership and lists features 12,
+  14, and 15 as next, although the build plan marks them shipped. Sections 3, 4,
+  and 9 need updating; until then this overview's ownership and lineup sections
+  are stale.

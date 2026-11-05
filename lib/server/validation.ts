@@ -3,6 +3,7 @@ import type { SongInput } from "@/types/song";
 import { SLOT_KEYS } from "@/types/lineup";
 import type { SlotAssignment, SlotKey } from "@/types/lineup";
 import { MONTH_PATTERN, sundaysInMonth } from "@/lib/lineups";
+import { canonicalVideoUrl, youTubeId } from "@/lib/youtube";
 
 export class ApiError extends Error {
   constructor(
@@ -101,6 +102,14 @@ export function validateSong(value: unknown): SongInput {
   const showChords = input.showChords ?? true;
   if (typeof showChords !== "boolean")
     throw new ApiError(400, "Show chords must be true or false.");
+  // Stored only in canonical form, rebuilt from the validated video ID.
+  const videoInput = string("referenceVideo", 300).trim();
+  const videoId = videoInput ? youTubeId(videoInput) : null;
+  if (videoInput && !videoId)
+    throw new ApiError(
+      400,
+      "Paste a YouTube video link (youtube.com or youtu.be), or leave it empty.",
+    );
   return {
     category: category as SongInput["category"],
     title,
@@ -116,6 +125,7 @@ export function validateSong(value: unknown): SongInput {
     fontSize,
     showChords,
     orientation,
+    referenceVideo: videoId ? canonicalVideoUrl(videoId) : "",
   };
 }
 
