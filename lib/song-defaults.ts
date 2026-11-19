@@ -15,6 +15,7 @@ export const blankSong: SongInput = {
   fontSize: 14,
   showChords: true,
   orientation: "portrait",
+  referenceVideo: "",
 };
 
 // Original demonstration text, included to show the editor without saving a song.

@@ -20,6 +20,8 @@ export interface Song {
   fontSize: number;
   showChords: boolean;
   orientation: "portrait" | "landscape";
+  /** "" or a canonical https://www.youtube.com/watch?v=<id> link. */
+  referenceVideo: string;
   createdAt: string;
   updatedAt: string;
 }
