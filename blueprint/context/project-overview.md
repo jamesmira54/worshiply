@@ -1,6 +1,6 @@
 # Worshiply - Project Overview
 
-<!-- blueprint:source-hash 7c45545290f2e52615a8d0a99b9111a4043122f232b20d6cfa8861033686e3cb -->
+<!-- blueprint:source-hash 543745404012a40ef3dd3216bbb0f1478ecfb8a5c8c888012f543a8f2ffd107e -->
 
 > A web app where church worship teams write, transpose, share, print, and export chord sheets.
 
@@ -49,7 +49,9 @@ editor and view (2-3), with export (9-10).
 12. [x] **Accounts** - real sign-in so ownership works across devices, replacing cookie-only ownership.
 13. [ ] **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document. **Next.**
 14. [x] **Performance mode** - full-screen, large-text or auto-scroll view for playing live.
-16. [ ] **Reference video** - optional YouTube link on each song so a team member who doesn't know a song can watch the original before rehearsal.
+16. [x] **Reference video** - optional YouTube link on each song so a team member who doesn't know a song can watch the original before rehearsal.
+17. [ ] **Lyrics presenter** - congregation-facing slide show of a song's or a Sunday lineup's lyrics: chords removed, one slide per section, a control window for the operator and an audience window on the projector. Nothing new is stored.
+18. [ ] **Bible verse presenter** - look up a passage (for example "John 3:16-18") from a bundled public-domain KJV and project it through the same control/audience windows. Works offline.
 
 Build order follows list order, not ID.
 
@@ -76,8 +78,8 @@ Stored columns (indexed on `updated_at DESC` and `original_key`):
 - `chordDiagramType` (`"guitar" | "piano" | "both" | "none"`)
 - `fontSize` (number), `showChords` (boolean), `orientation` (`"portrait" | "landscape"`)
 - `createdAt`, `updatedAt` (string, ISO)
-- Planned (feature 16): an optional YouTube reference video link, stored in the
-  JSON document. Field name, accepted URL forms, and display are decided in `/feature 16`.
+- `referenceVideo` (string) - `""` or a canonical `https://www.youtube.com/watch?v=<id>`
+  link (feature 16); older documents read as `""`
 
 `SongInput` is `Song` without `id`, `slug`, `createdAt`, `updatedAt`.
 
@@ -93,6 +95,16 @@ Stored columns (indexed on `updated_at DESC` and `original_key`):
 > TODO: storage shape (new table vs JSON per month), who may edit while
 > ownership is cookie-only, and what a slot shows if its song is deleted.
 > `/feature 15` decides these.
+
+### Bible text (feature 18, not built)
+
+- A static public-domain translation (KJV) bundled with the app as read-only
+  data. No database table. File format and reference parsing are decided in `/feature 18`.
+
+### Presenter (feature 17, not built)
+
+- No stored data. Slides are derived at view time from a Song's `lyrics`
+  sections with chords stripped; a lineup Sunday's slot order gives the song order.
 
 ### Ownership
 
@@ -130,6 +142,7 @@ editing interface is hidden when printing.
 - `/songs/[slug]` - chord sheet view, transpose, share, export, print
 - `/songs/[slug]/edit` - editor (owner only)
 - Monthly lineup screen - route not decided (feature 15)
+- Presenter control and audience windows - routes decided in `/feature 17`
 - `GET/POST /api/songs`, `GET/PATCH/DELETE /api/songs/[slug]` - JSON API
 
 ## Deployment
@@ -147,8 +160,6 @@ editing interface is hidden when printing.
 - Expected scale is unknown, and so is whether songs stay public once accounts
   exist (section 9). This decides the scope of feature 12.
 - Feature 15: edit permissions under cookie-only ownership, and deleted-song handling.
-- The order of features 12-14 is unconfirmed. Setlists and performance mode do
-  not obviously depend on accounts.
 - The project plan still describes cookie-only ownership and lists features 12,
   14, and 15 as next, although the build plan marks them shipped. Sections 3, 4,
   and 9 need updating; until then this overview's ownership and lineup sections

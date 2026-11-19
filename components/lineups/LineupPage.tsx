@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Link2, Trash2, X } from "lucide-react";
 import { api } from "@/lib/api";
-import { SLOTS, formatMonth, formatSunday, lineupSongHref } from "@/lib/lineups";
+import {
+  SLOTS,
+  formatMonth,
+  formatSunday,
+  lineupSongHref,
+  localDate,
+  sundayTiming,
+} from "@/lib/lineups";
 import type { Lineup, SlotKey } from "@/types/lineup";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { SlotPicker } from "./SlotPicker";
@@ -21,6 +28,9 @@ export function LineupPage({ id }: { id: string }) {
   const [shareMessage, setShareMessage] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  // Today's local date is only known in the browser; set after mount.
+  const [today, setToday] = useState("");
+  useEffect(() => setToday(localDate(new Date())), []);
   useEffect(() => {
     const controller = new AbortController();
     api<Result>(`/api/lineups/${encodeURIComponent(id)}`, { signal: controller.signal })
@@ -119,9 +129,21 @@ export function LineupPage({ id }: { id: string }) {
       <div className="sunday-list">
         {lineup.sundays.map((sunday) => {
           const sundayLabel = formatSunday(sunday.date);
+          const timing = today ? sundayTiming(sunday.date, today) : "future";
           return (
-            <section className="sunday-card" key={sunday.date} aria-labelledby={`sunday-${sunday.date}`}>
-              <h2 id={`sunday-${sunday.date}`}>{sundayLabel}</h2>
+            <section
+              className={timing === "future" ? "sunday-card" : `sunday-card ${timing}`}
+              key={sunday.date}
+              aria-labelledby={`sunday-${sunday.date}`}
+            >
+              <h2 id={`sunday-${sunday.date}`}>
+                {sundayLabel}
+                {timing !== "future" && (
+                  <span className="sunday-status no-print">
+                    {timing === "past" ? "Past" : "Upcoming"}
+                  </span>
+                )}
+              </h2>
               <ol>
                 {SLOTS.map((slot) => {
                   const key = `${sunday.date}:${slot.key}`;

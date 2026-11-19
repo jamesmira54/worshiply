@@ -27,7 +27,7 @@ Items 1-11 shipped before the Blueprint was adopted.
 - [ ] 13. **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document
 - [x] 14. **Performance mode** - full-screen, large-text or auto-scroll view for playing live
 - [x] 16. **Reference video** - optional YouTube link on each song so team members can hear the original before rehearsal
+- [ ] 17. **Lyrics presenter** - two-window slide show of a song's or a Sunday lineup's lyrics (chords removed, one slide per section) for the projector, with a control window for the operator
+- [ ] 18. **Bible verse presenter** - look up and project Bible passages from a bundled public-domain translation (KJV), using the same control/audience windows as the lyrics presenter
 
 Item 15 was added after 12-14 and is built first. Build order follows list order, not ID.
-
-> TODO (confirm): the order of items 12-14. Setlists and performance mode could come before accounts.

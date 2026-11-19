@@ -46,6 +46,23 @@ export function sundaysInMonth(month: string): string[] {
   return dates;
 }
 
+export type SundayTiming = "past" | "upcoming" | "future";
+
+/** Where a Sunday (YYYY-MM-DD) falls relative to today (YYYY-MM-DD). Only the
+ * one Sunday within the next 7 days, today included, is "upcoming". */
+export function sundayTiming(date: string, today: string): SundayTiming {
+  if (date < today) return "past";
+  const weekAhead = new Date(`${today}T00:00:00Z`);
+  weekAhead.setUTCDate(weekAhead.getUTCDate() + 7);
+  return date < weekAhead.toISOString().slice(0, 10) ? "upcoming" : "future";
+}
+
+/** The viewer's local calendar date as YYYY-MM-DD. */
+export function localDate(now: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
 export function formatSunday(date: string) {
   return new Intl.DateTimeFormat("en", {
     weekday: "long",

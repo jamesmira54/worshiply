@@ -2175,6 +2175,38 @@ code {
   padding: 0;
   margin: 0;
 }
+.sunday-status {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: 2px;
+}
+/* Screen only: printed lineups keep plain cards. */
+@media screen {
+  .sunday-card.past {
+    background: var(--surface);
+  }
+  .sunday-card.past h2,
+  .sunday-card.past .slot-song,
+  .sunday-card.past .slot-label {
+    color: var(--muted);
+  }
+  .sunday-card.past .sunday-status {
+    background: var(--border);
+    color: var(--ink);
+  }
+  .sunday-card.upcoming {
+    border: 2px solid var(--teal);
+    box-shadow: 0 2px 12px #38a3a522;
+  }
+  .sunday-card.upcoming .sunday-status {
+    background: var(--navy);
+    color: white;
+  }
+}
 .slot-row {
   display: grid;
   grid-template-columns: 150px minmax(0, 1fr) auto;

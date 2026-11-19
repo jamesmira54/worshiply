@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SLOTS, sundaysInMonth, formatSunday, sundayQueue } from "../lib/lineups";
+import { SLOTS, sundaysInMonth, formatSunday, sundayQueue, sundayTiming, localDate } from "../lib/lineups";
 import type { Lineup, LineupSong } from "../types/lineup";
 import {
   ApiError,
@@ -124,4 +124,20 @@ test("slot categories match the Sunday lineup rules", () => {
       ["closing", null],
     ],
   );
+});
+
+test("Sundays before today are past; only the one within the next 7 days is upcoming", () => {
+  assert.equal(sundayTiming("2026-11-15", "2026-11-19"), "past");
+  assert.equal(sundayTiming("2026-11-22", "2026-11-22"), "upcoming");
+  assert.equal(sundayTiming("2026-11-22", "2026-11-19"), "upcoming");
+  assert.equal(sundayTiming("2026-11-22", "2026-11-16"), "upcoming");
+  assert.equal(sundayTiming("2026-11-29", "2026-11-22"), "future");
+  assert.equal(sundayTiming("2026-12-06", "2026-11-30"), "upcoming");
+  assert.equal(sundayTiming("2027-01-03", "2026-12-29"), "upcoming");
+  assert.equal(sundayTiming("2026-12-27", "2027-01-01"), "past");
+});
+
+test("today is the viewer's local calendar date", () => {
+  assert.equal(localDate(new Date(2026, 0, 5, 23, 59)), "2026-01-05");
+  assert.equal(localDate(new Date(2026, 10, 30, 0, 0)), "2026-11-30");
 });

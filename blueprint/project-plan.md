@@ -42,9 +42,16 @@ Next (see `build-plan.md`):
   4 song slots: 1 Singspiration, 2 Worship songs, and 1 Closing song. The
   Singspiration slot offers Singspiration songs, the Worship slots offer Praise &
   Worship songs, and the Closing slot accepts any song.
-- Accounts, setlists, performance mode.
+- Setlists.
 - Reference video: an optional YouTube link on each song, so a team member who
   doesn't know a song can watch the original and get familiar with it.
+- Lyrics presenter: project a song's or a Sunday lineup's lyrics for the
+  congregation, like a slide show. The operator keeps a control window on the
+  laptop and drags an audience window onto the projector. Slides are made
+  automatically from the song's sections with chords removed; nothing new is stored.
+- Bible verse presenter: look up a passage (for example "John 3:16-18") and
+  project it during the sermon through the same control and audience windows,
+  using a bundled public-domain translation (KJV) that works offline.
 
 ## 4. Data - What are we storing?
 
@@ -57,6 +64,8 @@ Next (see `build-plan.md`):
   song slots (Singspiration, Worship 1, Worship 2, Closing) referencing saved songs.
   > TODO (confirm): who may edit a month's lineup while ownership is cookie-only,
   > and what a slot shows if its song is deleted.
+- **Bible text** - a static public-domain translation (KJV) bundled with the
+  app as read-only data; no database table.
 - **Ownership** - a random HTTP-only cookie token; only its hash is stored and it
   is never sent back to clients.
 
