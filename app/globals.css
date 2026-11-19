@@ -2881,6 +2881,15 @@ code {
   font-weight: 400;
   opacity: 0.75;
 }
+.presenter-screen .slide-face p.slide-caption {
+  margin-top: 0.8em;
+  font-size: calc(clamp(14px, 2.2vw, 30px) * var(--presenter-scale, 1) * 0.55);
+  font-weight: 400;
+  opacity: 0.75;
+}
+.presenter-screen.next .slide-face p.slide-caption {
+  font-size: calc(clamp(12px, 1.5vw, 22px) * var(--presenter-scale, 1) * 0.55);
+}
 .presenter-end {
   margin: 0;
   color: #9aa9ae;
@@ -2943,5 +2952,121 @@ code {
 @media (max-width: 760px) {
   .presenter-main {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Bible page */
+.bible-page {
+  max-width: 900px;
+}
+.reference-form {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.reference-form label {
+  font-weight: 600;
+  color: var(--navy);
+}
+.reference-row {
+  display: flex;
+  gap: 10px;
+}
+.reference-combobox {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+}
+.reference-combobox input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.reference-suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px #22577a22;
+}
+.reference-suggestions li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.reference-suggestions li span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.reference-suggestions li:hover,
+.reference-suggestions li[aria-selected="true"] {
+  background: var(--mint);
+}
+.reference-status,
+.reference-form .field-error {
+  margin: 0;
+}
+.reference-status {
+  color: var(--muted);
+}
+.passage-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.passage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.passage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+}
+.passage-item > div {
+  min-width: 0;
+}
+.passage-item strong {
+  color: var(--navy);
+}
+.passage-count {
+  color: var(--muted);
+  font-size: 13px;
+}
+.passage-preview {
+  margin: 4px 0 0;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.presenter-dialog .reference-form {
+  margin: 0;
+  max-width: 560px;
+}
+@media (max-width: 520px) {
+  .reference-row {
+    flex-direction: column;
+  }
+  .reference-combobox {
+    max-width: none;
   }
 }

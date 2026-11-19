@@ -50,7 +50,7 @@ editor and view (2-3), with export (9-10).
 13. [ ] **Setlists** - group songs into a service setlist with per-song keys, shared or exported as one document. **Next.**
 14. [x] **Performance mode** - full-screen, large-text or auto-scroll view for playing live.
 16. [x] **Reference video** - optional YouTube link on each song so a team member who doesn't know a song can watch the original before rehearsal.
-17. [ ] **Lyrics presenter** - congregation-facing slide show of a song's or a Sunday lineup's lyrics: chords removed, one slide per section, a control window for the operator and an audience window on the projector. Nothing new is stored.
+17. [x] **Lyrics presenter** - congregation-facing slide show of a song's or a Sunday lineup's lyrics: chords removed, one slide per section, a control window for the operator and an audience window on the projector. Nothing new is stored.
 18. [ ] **Bible verse presenter** - look up a passage (for example "John 3:16-18") from a bundled public-domain KJV and project it through the same control/audience windows. Works offline.
 
 Build order follows list order, not ID.
@@ -101,7 +101,7 @@ Stored columns (indexed on `updated_at DESC` and `original_key`):
 - A static public-domain translation (KJV) bundled with the app as read-only
   data. No database table. File format and reference parsing are decided in `/feature 18`.
 
-### Presenter (feature 17, not built)
+### Presenter (feature 17)
 
 - No stored data. Slides are derived at view time from a Song's `lyrics`
   sections with chords stripped; a lineup Sunday's slot order gives the song order.
@@ -142,7 +142,7 @@ editing interface is hidden when printing.
 - `/songs/[slug]` - chord sheet view, transpose, share, export, print
 - `/songs/[slug]/edit` - editor (owner only)
 - Monthly lineup screen - route not decided (feature 15)
-- Presenter control and audience windows - routes decided in `/feature 17`
+- Lyrics presenter - no route of its own: a control dialog opened by **Present** on `/songs/[slug]` and on each Sunday of `/lineups/[id]`, plus a same-origin audience pop-up
 - `GET/POST /api/songs`, `GET/PATCH/DELETE /api/songs/[slug]` - JSON API
 
 ## Deployment

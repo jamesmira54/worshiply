@@ -11,6 +11,7 @@ import { ExportMenu } from "./export/ExportMenu";
 import { ShareMenu } from "./ShareMenu";
 import { PerformanceView } from "./performance/PerformanceView";
 import { PresenterView } from "./presenter/PresenterView";
+import { deckSlides, type Slide } from "@/lib/presenter";
 import { ReferenceVideo } from "./ReferenceVideo";
 import { lineupSongHref, type LineupPlace } from "@/lib/lineups";
 
@@ -31,10 +32,10 @@ export function SongPage({
   const [busy, setBusy] = useState(false);
   const [performing, setPerforming] = useState(false);
   const performButton = useRef<HTMLButtonElement>(null);
-  const [presenting, setPresenting] = useState(false);
+  const [presenting, setPresenting] = useState<{ slides: Slide[]; groups: string[] } | null>(null);
   const presentButton = useRef<HTMLButtonElement>(null);
   function stopPresenting() {
-    setPresenting(false);
+    setPresenting(null);
     requestAnimationFrame(() => presentButton.current?.focus());
   }
   function stopPerforming(showing?: { slug: string; slot: LineupPlace["slot"] }) {
@@ -118,7 +119,13 @@ export function SongPage({
             ref={presentButton}
             className="button"
             disabled={!canonical}
-            onClick={() => setPresenting(true)}
+            onClick={() =>
+              canonical &&
+              setPresenting({
+                slides: deckSlides([canonical]),
+                groups: [canonical.title.trim() || "Untitled song"],
+              })
+            }
           >
             <Presentation size={16} /> Present
           </button>
@@ -173,8 +180,12 @@ export function SongPage({
       {performing && (
         <PerformanceView song={song} lineup={place} onClose={stopPerforming} />
       )}
-      {presenting && canonical && (
-        <PresenterView songs={[canonical]} onClose={stopPresenting} />
+      {presenting && (
+        <PresenterView
+          slides={presenting.slides}
+          groups={presenting.groups}
+          onClose={stopPresenting}
+        />
       )}
     </main>
   );
