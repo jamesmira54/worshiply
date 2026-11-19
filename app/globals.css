@@ -2175,6 +2175,16 @@ code {
   padding: 0;
   margin: 0;
 }
+.sunday-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.sunday-card-head h2 {
+  margin: 0;
+}
 .sunday-status {
   display: inline-block;
   margin-left: 10px;
@@ -2755,4 +2765,183 @@ code {
   height: 100%;
   border: 0;
   display: block;
+}
+
+/* Lyrics presenter (control window; the projector window carries its own styles) */
+.presenter-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 16px 20px;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+/* One scrolling column: each section keeps its natural height. */
+.presenter-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.presenter-dialog[open] > * {
+  flex-shrink: 0;
+}
+.presenter-dialog::backdrop {
+  background: var(--surface);
+}
+.presenter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.presenter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.presenter-count {
+  min-width: 110px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--navy);
+}
+.presenter-message,
+.presenter-hint {
+  margin: 0;
+  font-size: 14px;
+}
+.presenter-hint {
+  color: var(--muted);
+}
+.presenter-main {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: start;
+  gap: 16px;
+}
+.presenter-panel h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.presenter-blanked {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--navy);
+  color: white;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.presenter-screen {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4% 5%;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+/* Keep the slide list in view on a laptop. */
+.presenter-screen:not(.next) {
+  max-height: 55vh;
+}
+.presenter-screen.blanked > * {
+  opacity: 0.25;
+}
+.presenter-screen .slide-face p {
+  margin: 0;
+  font-size: calc(clamp(14px, 2.2vw, 30px) * var(--presenter-scale, 1));
+  line-height: 1.35;
+  font-weight: 600;
+}
+.presenter-screen.next .slide-face p {
+  font-size: calc(clamp(12px, 1.5vw, 22px) * var(--presenter-scale, 1));
+}
+.presenter-screen .slide-face.title p {
+  font-weight: 700;
+}
+.presenter-screen .slide-face.title p + p {
+  margin-top: 6px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+.presenter-end {
+  margin: 0;
+  color: #9aa9ae;
+}
+.presenter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.presenter-list h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  color: var(--navy);
+}
+.presenter-list ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+}
+.presenter-slide-button {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.presenter-slide-button[aria-current="true"] {
+  border-color: var(--teal);
+  box-shadow: inset 0 0 0 1px var(--teal);
+  background: var(--mint);
+}
+.presenter-slide-number {
+  color: var(--muted);
+  min-width: 18px;
+}
+.presenter-slide-text {
+  display: block;
+  font-weight: 400;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+@media (max-width: 760px) {
+  .presenter-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
