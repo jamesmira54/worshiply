@@ -1,12 +1,16 @@
 import { parseLyrics } from "./chord-parser";
+import type { Passage } from "./bible";
 
 export type Slide = {
-  kind: "title" | "lyrics";
-  songIndex: number;
-  songTitle: string;
-  /** Section name, shown only in the control window. */
+  kind: "title" | "lyrics" | "verse";
+  /** Which song or passage the slide belongs to, for the control window's list. */
+  groupIndex: number;
+  groupTitle: string;
+  /** Section name or verse number, shown only in the control window. */
   label?: string;
   lines: string[];
+  /** Small text under the slide, such as "John 3:16 KJV". */
+  caption?: string;
 };
 
 type PresentedSong = { title: string; artist: string; lyrics: string };
@@ -27,17 +31,17 @@ export function splitLines(lines: string[], max = 4): string[][] {
 
 /** A title slide, then the lyrics with chords removed: one group per section
  * heading or blank-line stanza, long groups split into slides of up to 4 lines. */
-export function songSlides(song: PresentedSong, songIndex = 0): Slide[] {
-  const songTitle = song.title.trim() || "Untitled song";
+export function songSlides(song: PresentedSong, groupIndex = 0): Slide[] {
+  const groupTitle = song.title.trim() || "Untitled song";
   const artist = song.artist.trim();
   const slides: Slide[] = [
-    { kind: "title", songIndex, songTitle, lines: artist ? [songTitle, artist] : [songTitle] },
+    { kind: "title", groupIndex, groupTitle, lines: artist ? [groupTitle, artist] : [groupTitle] },
   ];
   let label: string | undefined;
   let group: string[] = [];
   const flush = () => {
     for (const lines of splitLines(group))
-      slides.push({ kind: "lyrics", songIndex, songTitle, label, lines });
+      slides.push({ kind: "lyrics", groupIndex, groupTitle, label, lines });
     if (group.length) label = undefined;
     group = [];
   };
@@ -82,4 +86,20 @@ export function fitFontSize(start: number, min: number, fits: (size: number) => 
     else high = middle;
   }
   return low;
+}
+
+/** Bible passages as one slide show: one verse per slide, captioned with its reference. */
+export function passageSlides(passages: Passage[]): Slide[] {
+  return passages.flatMap((passage, groupIndex) =>
+    passage.verses.map(
+      (verse): Slide => ({
+        kind: "verse",
+        groupIndex,
+        groupTitle: passage.reference,
+        label: `${verse.chapter}:${verse.verse}`,
+        lines: [verse.text],
+        caption: `${passage.book} ${verse.chapter}:${verse.verse} KJV`,
+      }),
+    ),
+  );
 }

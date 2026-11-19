@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  BookOpen,
   Music2,
   Library,
   PenLine,
@@ -49,6 +50,7 @@ export function AppHeader({
   const editor = path.includes("/edit") || path === "/songs/new";
   const lineups = path.startsWith("/lineups");
   const users = path.startsWith("/users");
+  const bible = path.startsWith("/bible");
   const admin = account?.role === "admin";
   async function signOut() {
     setBusy(true);
@@ -85,7 +87,7 @@ export function AppHeader({
         <nav aria-label="Main navigation">
           <Link
             href="/songs"
-            className={!editor && !lineups && !users ? "active" : ""}
+            className={!editor && !lineups && !users && !bible ? "active" : ""}
           >
             <Library size={17} /> Songs
           </Link>
@@ -99,6 +101,9 @@ export function AppHeader({
               <CalendarDays size={17} /> Lineups
             </Link>
           )}
+          <Link href="/bible" className={bible ? "active" : ""}>
+            <BookOpen size={17} /> Bible
+          </Link>
           {admin && (
             <Link href="/users" className={users ? "active" : ""}>
               <Users size={17} /> Users

@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   AArrowDown,
@@ -11,18 +11,15 @@ import {
   MonitorUp,
   X,
 } from "lucide-react";
-import type { SongInput } from "@/types/song";
 import {
   DEFAULT_SCALE_INDEX,
   TEXT_SCALES,
-  deckSlides,
   fitFontSize,
   type Slide,
 } from "@/lib/presenter";
 import { stepIndex } from "@/lib/performance";
 
 type Audience = { win: Window; root: HTMLElement };
-type PresentedSong = Pick<SongInput, "title" | "artist" | "lyrics">;
 
 const MIN_FONT_PX = 12;
 
@@ -38,32 +35,41 @@ body { font-family: "Noto Sans", Arial, sans-serif; overflow: hidden; }
 .slide-face p { margin: 0; font-size: 1em; line-height: 1.35; font-weight: 600; overflow-wrap: anywhere; }
 .slide-face.title p { font-size: calc(9em / 7); font-weight: 700; }
 .slide-face.title p + p { margin-top: 0.3em; font-size: calc(5em / 7); font-weight: 400; opacity: 0.75; }
+.slide-face p.slide-caption { margin-top: 0.8em; font-size: 0.55em; font-weight: 400; opacity: 0.75; }
 `;
 }
 
 function SlideFace({ slide }: { slide: Slide }) {
   return (
-    <div className={slide.kind === "title" ? "slide-face title" : "slide-face"}>
+    <div className={slide.kind === "lyrics" ? "slide-face" : `slide-face ${slide.kind}`}>
       {slide.lines.map((line, i) => (
         <p key={i}>{line}</p>
       ))}
+      {slide.caption && <p className="slide-caption">{slide.caption}</p>}
     </div>
   );
 }
 
+/** Presents a deck of slides (song lyrics or Bible verses). `groups` names each
+ * song or passage for the slide list; `extra` renders under the controls. */
 export function PresenterView({
-  songs,
+  slides,
+  groups,
   skipped = [],
+  extra,
   onClose,
 }: {
-  songs: PresentedSong[];
+  slides: Slide[];
+  groups: string[];
   skipped?: string[];
+  extra?: ReactNode;
   onClose: () => void;
 }) {
-  const slides = useMemo(() => deckSlides(songs), [songs]);
   const dialog = useRef<HTMLDialogElement>(null);
   const list = useRef<HTMLOListElement>(null);
-  const [index, setIndex] = useState(0);
+  const [selected, setIndex] = useState(0);
+  // The deck can grow (passages added while presenting); never point past its end.
+  const index = Math.min(selected, slides.length - 1);
   const [blank, setBlank] = useState(false);
   const [audience, setAudience] = useState<Audience | null>(null);
   const [blocked, setBlocked] = useState(false);
@@ -77,9 +83,9 @@ export function PresenterView({
   handleKey.current = (event) => {
     const last = slides.length - 1;
     if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ")
-      setIndex((i) => Math.min(last, i + 1));
+      setIndex((i) => Math.min(last, Math.min(i, last) + 1));
     else if (event.key === "ArrowLeft" || event.key === "PageUp")
-      setIndex((i) => Math.max(0, i - 1));
+      setIndex((i) => Math.max(0, Math.min(i, last) - 1));
     else if (event.key === "b" || event.key === "B") setBlank((b) => !b);
     else if (event.key === "-")
       setScaleIndex((i) => stepIndex(TEXT_SCALES.length, i, -1));
@@ -195,7 +201,7 @@ export function PresenterView({
     setBlocked(false);
     const doc = win.document;
     doc.documentElement.lang = "en";
-    doc.title = "Worshiply lyrics";
+    doc.title = "Worshiply";
     const style = doc.createElement("style");
     style.textContent = audienceStyles(window.location.origin);
     doc.head.replaceChildren(style);
@@ -206,8 +212,16 @@ export function PresenterView({
   }
 
   function onKeyDown(event: ReactKeyboardEvent<HTMLDialogElement>) {
+    const target = event.target;
+    // Typing in a field (the Bible reference box) must not move slides.
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement
+    )
+      return;
     // Space and Enter on a focused button press that button.
-    if (event.target instanceof HTMLButtonElement && (event.key === " " || event.key === "Enter"))
+    if (target instanceof HTMLButtonElement && (event.key === " " || event.key === "Enter"))
       return;
     handleKey.current(event);
   }
@@ -219,7 +233,7 @@ export function PresenterView({
     <dialog
       ref={dialog}
       className="presenter-dialog no-print"
-      aria-label="Lyrics presenter"
+      aria-label="Presenter"
       onKeyDown={onKeyDown}
       onCancel={(e) => {
         e.preventDefault();
@@ -271,7 +285,7 @@ export function PresenterView({
           </button>
         </div>
         <button className="button" aria-pressed={blank} onClick={() => setBlank(!blank)}>
-          <EyeOff size={18} /> {blank ? "Show lyrics" : "Blank"}
+          <EyeOff size={18} /> {blank ? "Show slides" : "Blank"}
         </button>
         <button className="button" onClick={openAudience}>
           <MonitorUp size={18} /> {audienceOpen ? "Show audience window" : "Open audience window"}
@@ -290,12 +304,13 @@ export function PresenterView({
       <p className="presenter-hint">
         {audienceOpen
           ? "Drag the audience window onto the projector, then double-click it for full screen."
-          : "Open the audience window to show lyrics on the projector."}{" "}
+          : "Open the audience window to show slides on the projector."}{" "}
         Keys: arrows or Space to move, B to blank, − and + for text size.
       </p>
+      {extra}
       <div
         className="presenter-main"
-        style={{ "--presenter-scale": scale } as React.CSSProperties}
+        style={{ "--presenter-scale": scale } as CSSProperties}
       >
         <section className="presenter-panel" aria-label="Now showing">
           <h2>
@@ -314,12 +329,12 @@ export function PresenterView({
         </section>
       </div>
       <ol ref={list} className="presenter-list" aria-label="All slides">
-        {songs.map((song, songIndex) => (
-          <li key={songIndex}>
-            <h3>{song.title.trim() || "Untitled song"}</h3>
+        {groups.map((group, groupIndex) => (
+          <li key={groupIndex}>
+            <h3>{group}</h3>
             <ol>
               {slides.map((item, i) =>
-                item.songIndex === songIndex ? (
+                item.groupIndex === groupIndex ? (
                   <li key={i}>
                     <button
                       className="presenter-slide-button"

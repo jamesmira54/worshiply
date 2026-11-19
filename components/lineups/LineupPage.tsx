@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Link2, Presentation, Trash2, X } from "lucide-react";
 import type { Song } from "@/types/song";
 import { PresenterView } from "@/components/presenter/PresenterView";
+import { deckSlides, type Slide } from "@/lib/presenter";
 import { api } from "@/lib/api";
 import {
   SLOTS,
@@ -69,7 +70,8 @@ export function LineupPage({ id }: { id: string }) {
   const [presentLoad, setPresentLoad] = useState<{ date: string; error: string } | null>(null);
   const [presenting, setPresenting] = useState<{
     date: string;
-    songs: Song[];
+    slides: Slide[];
+    groups: string[];
     skipped: string[];
   } | null>(null);
   // Load the Sunday's songs in slot order; songs that fail are skipped and named.
@@ -94,7 +96,12 @@ export function LineupPage({ id }: { id: string }) {
       return;
     }
     setPresentLoad(null);
-    setPresenting({ date, songs, skipped });
+    setPresenting({
+      date,
+      slides: deckSlides(songs),
+      groups: songs.map((song) => song.title.trim() || "Untitled song"),
+      skipped,
+    });
   }
   function stopPresenting() {
     const date = presenting?.date;
@@ -302,7 +309,8 @@ export function LineupPage({ id }: { id: string }) {
       )}
       {presenting && (
         <PresenterView
-          songs={presenting.songs}
+          slides={presenting.slides}
+          groups={presenting.groups}
           skipped={presenting.skipped}
           onClose={stopPresenting}
         />
