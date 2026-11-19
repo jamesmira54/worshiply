@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, Trash2, X } from "lucide-react";
+import { ArrowLeft, Link2, Presentation, Trash2, X } from "lucide-react";
+import type { Song } from "@/types/song";
+import { PresenterView } from "@/components/presenter/PresenterView";
 import { api } from "@/lib/api";
 import {
   SLOTS,
@@ -10,6 +12,7 @@ import {
   formatSunday,
   lineupSongHref,
   localDate,
+  sundayQueue,
   sundayTiming,
 } from "@/lib/lineups";
 import type { Lineup, SlotKey } from "@/types/lineup";
@@ -62,6 +65,41 @@ export function LineupPage({ id }: { id: string }) {
     } finally {
       setBusy("");
     }
+  }
+  const [presentLoad, setPresentLoad] = useState<{ date: string; error: string } | null>(null);
+  const [presenting, setPresenting] = useState<{
+    date: string;
+    songs: Song[];
+    skipped: string[];
+  } | null>(null);
+  // Load the Sunday's songs in slot order; songs that fail are skipped and named.
+  async function present(date: string) {
+    if (!data) return;
+    const queue = sundayQueue(data.lineup, date);
+    if (!queue.length) return;
+    setPresentLoad({ date, error: "" });
+    const results = await Promise.allSettled(
+      queue.map((item) =>
+        api<{ song: Song }>(`/api/songs/${encodeURIComponent(item.slug)}`),
+      ),
+    );
+    const songs: Song[] = [];
+    const skipped: string[] = [];
+    results.forEach((result, i) => {
+      if (result.status === "fulfilled") songs.push(result.value.song);
+      else skipped.push(queue[i].title);
+    });
+    if (!songs.length) {
+      setPresentLoad({ date, error: "Couldn't load this Sunday's songs. Try again." });
+      return;
+    }
+    setPresentLoad(null);
+    setPresenting({ date, songs, skipped });
+  }
+  function stopPresenting() {
+    const date = presenting?.date;
+    setPresenting(null);
+    requestAnimationFrame(() => document.getElementById(`present-${date}`)?.focus());
   }
   async function copyLink() {
     try {
@@ -130,20 +168,38 @@ export function LineupPage({ id }: { id: string }) {
         {lineup.sundays.map((sunday) => {
           const sundayLabel = formatSunday(sunday.date);
           const timing = today ? sundayTiming(sunday.date, today) : "future";
+          const hasSongs = sundayQueue(lineup, sunday.date).length > 0;
+          const loadingSongs = presentLoad?.date === sunday.date && !presentLoad.error;
           return (
             <section
               className={timing === "future" ? "sunday-card" : `sunday-card ${timing}`}
               key={sunday.date}
               aria-labelledby={`sunday-${sunday.date}`}
             >
-              <h2 id={`sunday-${sunday.date}`}>
-                {sundayLabel}
-                {timing !== "future" && (
-                  <span className="sunday-status no-print">
-                    {timing === "past" ? "Past" : "Upcoming"}
-                  </span>
-                )}
-              </h2>
+              <div className="sunday-card-head">
+                <h2 id={`sunday-${sunday.date}`}>
+                  {sundayLabel}
+                  {timing !== "future" && (
+                    <span className="sunday-status no-print">
+                      {timing === "past" ? "Past" : "Upcoming"}
+                    </span>
+                  )}
+                </h2>
+                <button
+                  id={`present-${sunday.date}`}
+                  className="button quiet no-print"
+                  disabled={!hasSongs || !!presentLoad && !presentLoad.error}
+                  aria-label={`Present ${sundayLabel} lyrics`}
+                  onClick={() => void present(sunday.date)}
+                >
+                  <Presentation size={16} /> {loadingSongs ? "Loading songs…" : "Present"}
+                </button>
+              </div>
+              {presentLoad?.date === sunday.date && presentLoad.error && (
+                <p className="field-error no-print" role="alert">
+                  {presentLoad.error}
+                </p>
+              )}
               <ol>
                 {SLOTS.map((slot) => {
                   const key = `${sunday.date}:${slot.key}`;
@@ -243,6 +299,13 @@ export function LineupPage({ id }: { id: string }) {
             </button>
           </div>
         </ConfirmDialog>
+      )}
+      {presenting && (
+        <PresenterView
+          songs={presenting.songs}
+          skipped={presenting.skipped}
+          onClose={stopPresenting}
+        />
       )}
     </main>
   );

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, PenLine, Copy, Printer, MonitorPlay } from "lucide-react";
+import { ArrowLeft, PenLine, Copy, Printer, MonitorPlay, Presentation } from "lucide-react";
 import type { Song } from "@/types/song";
 import { api } from "@/lib/api";
 import { ChordSheet } from "./chord-sheet/ChordSheet";
@@ -10,6 +10,7 @@ import { EditorToolbar } from "./editor/EditorToolbar";
 import { ExportMenu } from "./export/ExportMenu";
 import { ShareMenu } from "./ShareMenu";
 import { PerformanceView } from "./performance/PerformanceView";
+import { PresenterView } from "./presenter/PresenterView";
 import { ReferenceVideo } from "./ReferenceVideo";
 import { lineupSongHref, type LineupPlace } from "@/lib/lineups";
 
@@ -30,6 +31,12 @@ export function SongPage({
   const [busy, setBusy] = useState(false);
   const [performing, setPerforming] = useState(false);
   const performButton = useRef<HTMLButtonElement>(null);
+  const [presenting, setPresenting] = useState(false);
+  const presentButton = useRef<HTMLButtonElement>(null);
+  function stopPresenting() {
+    setPresenting(false);
+    requestAnimationFrame(() => presentButton.current?.focus());
+  }
   function stopPerforming(showing?: { slug: string; slot: LineupPlace["slot"] }) {
     setPerforming(false);
     // After stepping through a lineup Sunday, land on the song that was showing.
@@ -107,6 +114,14 @@ export function SongPage({
           >
             <MonitorPlay size={16} /> Perform
           </button>
+          <button
+            ref={presentButton}
+            className="button"
+            disabled={!canonical}
+            onClick={() => setPresenting(true)}
+          >
+            <Presentation size={16} /> Present
+          </button>
           <ShareMenu slug={song.slug} title={song.title} />
           <button className="button" onClick={() => window.print()}>
             <Printer size={16} /> Print
@@ -157,6 +172,9 @@ export function SongPage({
       </div>
       {performing && (
         <PerformanceView song={song} lineup={place} onClose={stopPerforming} />
+      )}
+      {presenting && canonical && (
+        <PresenterView songs={[canonical]} onClose={stopPresenting} />
       )}
     </main>
   );
